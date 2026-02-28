@@ -11,7 +11,10 @@ export default function AkatsukiCanvas() {
         persistenceKey="akatsuki-local-dev"
         inferDarkMode
         initialState="draw"
-        components={{ ZoomMenu: null, Minimap: null }}
+        components={{
+          ZoomMenu: null,
+          Minimap: null,
+        }}
       />
     </div>
   );
