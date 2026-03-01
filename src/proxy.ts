@@ -26,9 +26,15 @@ export async function proxy(request: NextRequest) {
 
         // Update the response cookies so the browser saves them
         supabaseResponse = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
-        );
+        cookiesToSet.forEach(({ name, value, options }) => {
+          supabaseResponse.cookies.set({
+            name,
+            value,
+            ...options,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production", // Only require HTTPS in production
+          });
+        });
       },
     },
   });
