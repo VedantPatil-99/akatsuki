@@ -1,4 +1,5 @@
 import { AuthBanner } from "@/components/auth/auth-banner";
+import { AuthConflictModal } from "@/components/auth/auth-conflict-modal";
 import { CanvasAuthButton } from "@/components/auth/canvas-auth-button";
 import AkatsukiCanvas from "@/components/canvas/AkatsukiCanvas";
 import { createClient } from "@/lib/supabase/server";
@@ -24,6 +25,8 @@ export default async function BoardPage() {
   return (
     <div className="bg-primary flex h-screen w-full flex-col overflow-hidden">
       <AuthBanner />
+
+      <AuthConflictModal />
 
       <main className="relative h-full w-full flex-1">
         <CanvasAuthButton

@@ -7,6 +7,11 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/board";
 
+  const errorCode = searchParams.get("error_code");
+  if (errorCode === "identity_already_exists") {
+    return NextResponse.redirect(`${origin}/board?conflict=existing_account`);
+  }
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);

@@ -68,3 +68,10 @@ export async function signOutAction() {
   revalidatePath("/", "layout");
   redirect("/");
 }
+
+export async function discardGuestAndLogin() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
+  redirect("/login");
+}
