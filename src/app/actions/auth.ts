@@ -31,16 +31,35 @@ export async function signInWithGoogle() {
   const supabase = await createClient();
   const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-  // When an anonymous user initiates OAuth, Supabase automatically links the identities
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${origin}/api/auth/callback`, // Standard PKCE callback route
-    },
-  });
+  // 1. Get the current user to see if they are a guest
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (error) throw new Error(error.message);
-  if (data.url) redirect(data.url);
+  let authResponse;
+
+  if (user && user.is_anonymous) {
+    // 2. If they ARE an anonymous guest, explicitly LINK the Google account to this row
+    authResponse = await supabase.auth.linkIdentity({
+      provider: "google",
+      options: {
+        redirectTo: `${origin}/api/auth/callback`,
+      },
+    });
+  } else {
+    // 3. If they are completely logged out, do a normal Google sign in
+    authResponse = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${origin}/api/auth/callback`,
+      },
+    });
+  }
+
+  if (authResponse.error) throw new Error(authResponse.error.message);
+
+  // 4. Redirect to Google's consent screen
+  if (authResponse.data.url) redirect(authResponse.data.url);
 }
 
 export async function signOutAction() {
