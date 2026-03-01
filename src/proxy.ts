@@ -46,7 +46,8 @@ export async function proxy(request: NextRequest) {
 
   // 4. THE SILENT GUEST LOGIN
   // If the user has no session, silently sign them in as an anonymous user.
-  if (!session) {
+  const isBoardRoute = request.nextUrl.pathname.startsWith("/board");
+  if (!session && isBoardRoute) {
     const { error } = await supabase.auth.signInAnonymously();
 
     if (error) {
