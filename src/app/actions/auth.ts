@@ -134,3 +134,19 @@ export async function resetPassword(formData: FormData) {
 
   return { success: "Password reset link sent! Please check your email." };
 }
+
+export async function updateExistingPassword(formData: FormData) {
+  const password = formData.get("password") as string;
+
+  if (!password || password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) return { error: error.message };
+
+  redirect("/board");
+}
