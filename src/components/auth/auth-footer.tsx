@@ -1,4 +1,4 @@
-import { GoogleLogo } from "@phosphor-icons/react";
+import { GoogleLogoIcon } from "@phosphor-icons/react";
 
 import { signInWithGoogle } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,7 @@ export const AuthFooter = ({
           disabled={isPending}
           className="flex w-full items-center justify-center gap-2"
         >
-          <GoogleLogo weight="bold" size={20} />
+          <GoogleLogoIcon weight="bold" size={20} />
           Continue with Google
         </Button>
       </form>
