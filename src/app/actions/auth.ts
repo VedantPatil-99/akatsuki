@@ -118,3 +118,19 @@ export async function discardGuestAndLogin() {
   revalidatePath("/", "layout");
   redirect("/login");
 }
+
+export async function resetPassword(formData: FormData) {
+  const email = formData.get("email") as string;
+  if (!email) return { error: "Email is required." };
+
+  const supabase = await createClient();
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/api/auth/callback?next=/update-password`,
+  });
+
+  if (error) return { error: error.message };
+
+  return { success: "Password reset link sent! Please check your email." };
+}
