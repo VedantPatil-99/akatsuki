@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
+import { ForgotPasswordDialog } from "./forget-password-dialog";
 import { AuthMode } from "./types";
 
 interface PasswordInputProps {
@@ -18,7 +19,7 @@ interface PasswordInputProps {
 }
 
 const requirements = [
-  { regex: /.{6,}/, text: "At least 6 characters" }, // Maintained original business logic limit
+  { regex: /.{6,}/, text: "At least 6 characters" },
   { regex: /[a-z]/, text: "At least 1 lowercase letter" },
   { regex: /[A-Z]/, text: "At least 1 uppercase letter" },
   { regex: /[0-9]/, text: "At least 1 number" },
@@ -64,14 +65,7 @@ export const PasswordInput = ({ id, mode, disabled }: PasswordInputProps) => {
     <div className="grid gap-2">
       <div className="flex items-center justify-between">
         <Label htmlFor={id}>Password</Label>
-        {mode === "login" && (
-          <a
-            href="#"
-            className="text-muted-foreground text-sm underline-offset-4 hover:underline"
-          >
-            Forgot your password?
-          </a>
-        )}
+        {mode === "login" && <ForgotPasswordDialog />}
       </div>
 
       <div className="relative">
