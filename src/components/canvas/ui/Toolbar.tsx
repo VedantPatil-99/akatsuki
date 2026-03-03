@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PenNibIcon, ShapesIcon } from "@phosphor-icons/react";
 import {
@@ -16,11 +16,31 @@ export default function Toolbar() {
   const [showShapes, setShowShapes] = useState(false);
   const [showStylePanel, setShowStylePanel] = useState(false);
 
+  useEffect(() => {
+    const handlePointerDown = (e: PointerEvent) => {
+      const toolbar = document.getElementById("toolbar");
+
+      // If clicking inside toolbar or style panel → ignore
+      if (toolbar && toolbar.contains(e.target as Node)) return;
+
+      // If drawing tool active → close style panel
+      if (editor.getCurrentToolId() === "draw") {
+        setShowStylePanel(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [editor]);
+
   const btn =
     "w-10 h-10 rounded-lg bg-black dark:bg-zinc-800 hover:bg-blue-500 dark:hover:bg-zinc-700 text-white flex items-center justify-center";
 
   const dropdown =
-    "absolute bottom-14 left-1/2 -translate-x-1/2 bg-black dark:bg-zinc-800 border border-white/20 rounded-xl shadow-xl p-3 z-50";
+    "absolute bottom-14 left-1/2 -translate-x-1/2 bg-black dark:bg-zinc-800 border border-white rounded-xl shadow-xl p-3 z-50";
 
   const setShape = (shape: GeoShapeGeoStyle) => {
     editor.setCurrentTool("geo");
@@ -29,7 +49,10 @@ export default function Toolbar() {
   };
 
   return (
-    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2 rounded-xl border border-white/20 bg-black p-2 shadow-xl dark:bg-zinc-900">
+    <div
+      id="toolbar"
+      className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2 rounded-xl border border-white bg-black p-2 shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
+    >
       {/* SELECT */}
       <button
         className={btn}
