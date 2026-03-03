@@ -32,11 +32,38 @@ export const AuthForm = ({ isAnonymous }: AuthFormProps) => {
   const [mode, setMode] = useState<AuthMode>(isAnonymous ? "signup" : "login");
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<AuthMessage | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage(null);
+    setFieldErrors({});
+
     const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    const errors: { email?: string; password?: string } = {};
+
+    if (!email) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Please enter a valid email address.";
+    }
+
+    if (!password) {
+      errors.password = "Password is required.";
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
 
     startTransition(async () => {
       let result: { error?: string; success?: string } | undefined;
@@ -75,10 +102,19 @@ export const AuthForm = ({ isAnonymous }: AuthFormProps) => {
       <AuthHeader mode={mode} isAnonymous={isAnonymous} />
 
       <CardContent>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="flex flex-col gap-6">
-            <EmailInput id="email" disabled={isPending} />
-            <PasswordInput id="password" mode={mode} disabled={isPending} />
+            <EmailInput
+              id="email"
+              disabled={isPending}
+              error={fieldErrors.email}
+            />
+            <PasswordInput
+              id="password"
+              mode={mode}
+              disabled={isPending}
+              error={fieldErrors.password}
+            />
 
             {message?.type === "error" && (
               <div className="bg-destructive/15 text-destructive rounded-md p-3 text-sm">

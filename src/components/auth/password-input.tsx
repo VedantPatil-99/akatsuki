@@ -16,6 +16,7 @@ interface PasswordInputProps {
   id: string;
   mode: AuthMode;
   disabled?: boolean;
+  error?: string;
 }
 
 const requirements = [
@@ -29,7 +30,12 @@ const requirements = [
   },
 ];
 
-export const PasswordInput = ({ id, mode, disabled }: PasswordInputProps) => {
+export const PasswordInput = ({
+  id,
+  mode,
+  disabled,
+  error,
+}: PasswordInputProps) => {
   const [password, setPassword] = useState("");
   const [isVisible, setIsVisible] = useState(false);
 
@@ -64,7 +70,9 @@ export const PasswordInput = ({ id, mode, disabled }: PasswordInputProps) => {
   return (
     <div className="grid gap-2">
       <div className="flex items-center justify-between">
-        <Label htmlFor={id}>Password</Label>
+        <Label htmlFor={id} className={error ? "text-destructive" : ""}>
+          Password
+        </Label>
         {mode === "login" && <ForgotPasswordDialog />}
       </div>
 
@@ -73,13 +81,17 @@ export const PasswordInput = ({ id, mode, disabled }: PasswordInputProps) => {
           id={id}
           name="password"
           type={isVisible ? "text" : "password"}
-          placeholder="Strong password is recommended"
+          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
           disabled={disabled}
-          className="pr-9"
+          aria-invalid={!!error}
+          className={cn(
+            "peer pr-9",
+            error && "border-destructive focus-visible:ring-destructive"
+          )}
         />
         <Button
           type="button"
@@ -99,6 +111,12 @@ export const PasswordInput = ({ id, mode, disabled }: PasswordInputProps) => {
           </span>
         </Button>
       </div>
+
+      {error && (
+        <p className="text-destructive peer-aria-invalid:text-destructive mt-1 text-xs">
+          {error}
+        </p>
+      )}
 
       {mode === "signup" && (
         <div className="mt-3 space-y-2">
