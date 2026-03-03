@@ -9,6 +9,7 @@ import { FloppyDiskIcon, SignOutIcon, UserIcon } from "@phosphor-icons/react";
 
 import { signOutAction } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface CanvasAuthButtonProps {
   isAnonymous: boolean;
@@ -24,11 +25,17 @@ export function CanvasAuthButton({
   const [showMenu, setShowMenu] = useState(false);
 
   return (
-    <div className="pointer-events-auto absolute top-4 right-4 z-500 flex items-center gap-2">
+    <div className="pointer-events-auto absolute top-4 right-15 z-500 flex items-center gap-2">
       {isAnonymous ? (
         <Button
           asChild
-          className="gap-2 rounded-full bg-zinc-900 px-5 text-white shadow-lg hover:bg-zinc-800"
+          className={cn(
+            "border-secondary-foreground/50 gap-2 rounded-full shadow-sm",
+            "dark:bg-neutral-900 dark:text-neutral-50 dark:hover:bg-neutral-800",
+            "bg-secondary text-neutral-800 hover:bg-neutral-200"
+          )}
+          variant="outline"
+          size="default"
         >
           <Link href="/login">
             <FloppyDiskIcon weight="bold" className="size-4" />
@@ -51,7 +58,7 @@ export function CanvasAuthButton({
               />
             ) : (
               <div className="flex size-6 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100">
-                <UserIcon weight="bold" className="h-3.5 w-3.5 text-zinc-600" />
+                <UserIcon className="h-3.5 w-3.5 text-zinc-600" />
               </div>
             )}
             <span className="max-w-[120px] truncate text-sm font-medium text-zinc-700">
