@@ -2,6 +2,7 @@ import { AuthBanner } from "@/components/auth/auth-banner";
 import { AuthConflictModal } from "@/components/auth/auth-conflict-modal";
 import { CanvasAuthButton } from "@/components/auth/canvas-auth-button";
 import AkatsukiCanvas from "@/components/canvas/AkatsukiCanvas";
+import { ThemeToggle } from "@/components/canvas/theme-toggle";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function BoardPage() {
@@ -34,7 +35,7 @@ export default async function BoardPage() {
           email={email}
           avatarUrl={avatarUrl}
         />
-
+        <ThemeToggle />
         <AkatsukiCanvas />
       </main>
     </div>
