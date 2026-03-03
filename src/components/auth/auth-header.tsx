@@ -10,7 +10,7 @@ interface AuthHeaderProps {
 export const AuthHeader = ({ mode, isAnonymous }: AuthHeaderProps) => {
   return (
     <CardHeader>
-      <CardTitle className="text-xl">
+      <CardTitle className="font-mono text-xl">
         {mode === "login"
           ? "Welcome Back!"
           : isAnonymous
