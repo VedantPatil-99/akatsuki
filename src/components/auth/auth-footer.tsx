@@ -24,7 +24,7 @@ export const AuthFooter = ({
           type="button"
           onClick={onToggleMode}
           disabled={isPending}
-          className="text-muted-foreground underline-offset-4 hover:underline"
+          className="text-muted-foreground cursor-pointer hover:underline hover:underline-offset-4"
         >
           {mode === "login"
             ? "Don't have an account? Sign up"
