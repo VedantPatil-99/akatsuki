@@ -25,7 +25,7 @@ export function CanvasAuthButton({
   const [showMenu, setShowMenu] = useState(false);
 
   return (
-    <div className="pointer-events-auto absolute top-4 right-15 z-500 flex items-center gap-2">
+    <div className="pointer-events-auto absolute top-4 right-15 z-10 flex items-center gap-2">
       {isAnonymous ? (
         <Button
           asChild
@@ -61,7 +61,7 @@ export function CanvasAuthButton({
                 <UserIcon className="h-3.5 w-3.5 text-zinc-600" />
               </div>
             )}
-            <span className="max-w-[120px] truncate text-sm font-medium text-zinc-700">
+            <span className="max-w-30 truncate text-sm font-medium text-zinc-700">
               {email?.split("@")[0] || "Account"}
             </span>
           </button>

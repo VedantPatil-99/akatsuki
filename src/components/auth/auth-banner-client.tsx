@@ -15,7 +15,7 @@ export function AuthBannerClient() {
   if (!isActive) return null;
 
   return (
-    <div className="absolute z-50 flex w-full items-center justify-center px-4 py-4">
+    <div className="absolute z-10 flex w-full items-center justify-center px-4 py-4">
       <Alert className="flex max-w-2xl justify-between border border-amber-800 shadow-sm backdrop-blur-xl">
         {/* <CircleAlertIcon /> */}
         <WarningCircleIcon size={32} />
