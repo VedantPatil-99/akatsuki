@@ -37,6 +37,12 @@ export const AuthForm = ({ isAnonymous }: AuthFormProps) => {
     password?: string;
   }>({});
 
+  const clearFieldError = (field: "email" | "password") => {
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage(null);
@@ -92,7 +98,7 @@ export const AuthForm = ({ isAnonymous }: AuthFormProps) => {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md px-4">
       {urlMessage && (
         <div className="bg-muted text-muted-foreground m-6 mb-0 rounded-md p-3 text-center text-sm">
           {urlMessage}
@@ -108,12 +114,14 @@ export const AuthForm = ({ isAnonymous }: AuthFormProps) => {
               id="email"
               disabled={isPending}
               error={fieldErrors.email}
+              onChange={() => clearFieldError("email")}
             />
             <PasswordInput
               id="password"
               mode={mode}
               disabled={isPending}
               error={fieldErrors.password}
+              onChange={() => clearFieldError("password")}
             />
 
             {message?.type === "error" && (
