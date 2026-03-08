@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { PenNibIcon, ShapesIcon } from "@phosphor-icons/react";
 import {
@@ -24,7 +24,8 @@ export default function Toolbar() {
   const isLaser = activeTool === "laser";
   const isHighlight = activeTool === "highlight";
   const isEraser = activeTool === "eraser";
-  const isShape = activeTool === "geo";
+  const isShape =
+    activeTool === "geo" || activeTool === "arrow" || activeTool === "line";
   const isRectangle = activeTool === "rectangle";
   const isEllipse = activeTool === "ellipse";
   const isTriangle = activeTool === "triangle";
@@ -43,6 +44,27 @@ export default function Toolbar() {
   const [showShapes, setShowShapes] = useState(false);
   const [showStylePanel, setShowStylePanel] = useState(false);
   const [showToolbar, setShowToolbar] = useState(true);
+  const [showPenPanel, setShowPenPanel] = useState(false);
+  const [showTextPanel, setShowTextPanel] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+
+  const [isIdle, setIsIdle] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetTimer = () => {
+    setIsIdle(false);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setIsIdle(true), 3000);
+  };
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setIsIdle(true), 3000);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handlePointerDown = (e: PointerEvent) => {
@@ -51,7 +73,12 @@ export default function Toolbar() {
       if (toolbar && toolbar.contains(e.target as Node)) return;
 
       if (editor.getCurrentToolId() === "draw") {
-        setShowStylePanel(false);
+        setShowPenPanel(false);
+      }
+
+      if (editor.getCurrentToolId() === "text") {
+        setShowTextPanel(false);
+        setShowMore(false);
       }
     };
 
@@ -63,7 +90,7 @@ export default function Toolbar() {
   }, [editor]);
 
   const btn = (active: boolean) =>
-    `w-10 h-10 rounded-lg flex items-center justify-center text-white
+    `w-10 h-10 rounded-lg flex items-center justify-start text-white
      transition-all duration-200 ease-out
      active:scale-90
      ${
@@ -78,6 +105,7 @@ export default function Toolbar() {
   const setShape = (shape: GeoShapeGeoStyle) => {
     editor.setCurrentTool("geo");
     editor.setStyleForNextShapes(GeoShapeGeoStyle, shape);
+    editor.updateInstanceState({ isToolLocked: true });
     setShowShapes(false);
   };
 
@@ -85,9 +113,15 @@ export default function Toolbar() {
     <>
       {/* TOGGLE BUTTON */}
       <button
-        onClick={() => setShowToolbar(!showToolbar)}
+        onPointerEnter={resetTimer}
+        onClick={() => {
+          setShowToolbar(!showToolbar);
+          resetTimer(); // Reset when clicked
+        }}
         className={`fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-500 ease-out ${
-          showToolbar ? "bottom-22" : "bottom-3"
+          showToolbar ? "bottom-20" : "bottom-3"
+        } ${
+          isIdle ? "pointer-events-none opacity-0" : "opacity-100"
         } flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 backdrop-blur-md hover:bg-black/90`}
       >
         <div
@@ -102,102 +136,111 @@ export default function Toolbar() {
       {/* TOOLBAR */}
       <div
         id="toolbar"
+        onPointerEnter={resetTimer}
+        onPointerMove={resetTimer}
         className={`fixed left-1/2 -translate-x-1/2 transition-all duration-500 ease-out ${
           showToolbar
-            ? "bottom-9 opacity-100"
+            ? "bottom-4 opacity-100"
             : "pointer-events-none -bottom-24 opacity-0"
         } flex gap-2 rounded-xl border border-white/20 bg-black/70 p-2 shadow-lg backdrop-blur-lg`}
       >
-        {/* SELECT */}
-        <button
-          className={btn(isSelect)}
-          onClick={() => {
-            editor.setCurrentTool("select");
-            setShowStylePanel(false);
-            setShowShapes(false);
-          }}
-        >
-          <TldrawUiButtonIcon icon="tool-select" />
-        </button>
-
-        {/* MOVE */}
-        <button
-          className={btn(isHand)}
-          onClick={() => {
-            editor.setCurrentTool("hand");
-            setShowStylePanel(false);
-            setShowShapes(false);
-          }}
-        >
-          <TldrawUiButtonIcon icon="tool-hand" />
-        </button>
-
         {/* PEN */}
         <div className="relative">
           <button
-            className={btn(isDraw)}
+            className={`${btn(isDraw && !showShapes && !showMore)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
             onClick={() => {
               editor.setCurrentTool("draw");
-              setShowStylePanel(!showStylePanel);
+              setShowPenPanel(!showPenPanel);
+              setShowTextPanel(false);
               setShowShapes(false);
+              setShowMore(false);
             }}
           >
             <PenNibIcon size={20} />
+            <span
+              className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${isDraw && !showShapes && !showMore ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+            >
+              Pen
+            </span>
           </button>
 
-          {showStylePanel && (
+          {showPenPanel && (
             <div className={dropdown}>
               <DefaultStylePanel />
             </div>
           )}
         </div>
 
-        {/* LASER */}
-        <button
-          className={btn(isLaser)}
-          onClick={() => {
-            editor.setCurrentTool("laser");
-            setShowStylePanel(false);
-            setShowShapes(false);
-          }}
-        >
-          <TldrawUiButtonIcon icon="tool-laser" />
-        </button>
-
-        {/* HIGHLIGHT */}
-        <button
-          className={btn(isHighlight)}
-          onClick={() => {
-            editor.setCurrentTool("highlight");
-            setShowStylePanel(false);
-            setShowShapes(false);
-          }}
-        >
-          <TldrawUiButtonIcon icon="tool-highlight" />
-        </button>
-
         {/* ERASER */}
         <button
-          className={btn(isEraser)}
+          className={`${btn(isEraser && !showShapes && !showMore)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
           onClick={() => {
             editor.setCurrentTool("eraser");
             setShowStylePanel(false);
             setShowShapes(false);
+            setShowMore(false);
           }}
         >
           <TldrawUiButtonIcon icon="tool-eraser" />
+          <span
+            className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${isEraser && !showShapes && !showMore ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+          >
+            Eraser
+          </span>
+        </button>
+
+        {/* SELECT */}
+        <button
+          className={`${btn(isSelect && !showShapes && !showMore)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
+          onClick={() => {
+            editor.setCurrentTool("select");
+            setShowPenPanel(false);
+            setShowShapes(false);
+            setShowMore(false);
+          }}
+        >
+          <TldrawUiButtonIcon icon="tool-pointer" />
+          <span
+            className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${isSelect && !showShapes && !showMore ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+          >
+            Select
+          </span>
+        </button>
+
+        {/* MOVE */}
+        <button
+          className={`${btn(isHand && !showShapes && !showMore)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
+          onClick={() => {
+            editor.setCurrentTool("hand");
+            setShowStylePanel(false);
+            setShowShapes(false);
+            setShowMore(false);
+          }}
+        >
+          <TldrawUiButtonIcon icon="tool-hand" />
+          <span
+            className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${isHand && !showShapes && !showMore ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+          >
+            Move
+          </span>
         </button>
 
         {/* SHAPES */}
         <div className="relative">
           <button
-            className={btn(isShape)}
+            className={`${btn((isShape || showShapes) && !showMore)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
             onClick={() => {
               setShowShapes(!showShapes);
               setShowStylePanel(false);
+              setShowMore(false);
             }}
           >
             <ShapesIcon size={20} />
+            <span
+              className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${(isShape || showShapes) && !showMore ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+            >
+              Shapes
+            </span>
           </button>
 
           {showShapes && (
@@ -289,29 +332,101 @@ export default function Toolbar() {
           )}
         </div>
 
-        {/* TEXT */}
-        <button
-          className={btn(isText)}
-          onClick={() => {
-            editor.setCurrentTool("text");
-            setShowStylePanel(false);
-            setShowShapes(false);
-          }}
-        >
-          <TldrawUiButtonIcon icon="tool-text" />
-        </button>
+        {/* MORE */}
+        <div className="relative">
+          <button
+            className={`${btn((isLaser || isHighlight || isText || isFrame || showTextPanel || showMore) && !showShapes)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
+            onClick={() => {
+              setShowMore(!showMore);
+              setShowShapes(false);
+              setShowPenPanel(false);
+              setShowTextPanel(false);
+            }}
+          >
+            <TldrawUiButtonIcon icon="dots-horizontal" />
+            <span
+              className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${(isLaser || isHighlight || isText || isFrame || showTextPanel || showMore) && !showShapes ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+            >
+              More
+            </span>
+          </button>
 
-        {/* FRAME */}
-        <button
-          className={btn(isFrame)}
-          onClick={() => {
-            editor.setCurrentTool("frame");
-            setShowStylePanel(false);
-            setShowShapes(false);
-          }}
-        >
-          <TldrawUiButtonIcon icon="tool-frame" />
-        </button>
+          {showMore && (
+            <div className={`${dropdown} flex w-40 flex-col gap-2 p-2`}>
+              {/* TEXT */}
+              <button
+                className={`${btn(isText)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
+                onClick={() => {
+                  editor.setCurrentTool("text");
+                  setShowTextPanel(true);
+                  setShowPenPanel(false);
+                  setShowShapes(false);
+                  setShowMore(false);
+                }}
+              >
+                <TldrawUiButtonIcon icon="tool-text" />
+                <span
+                  className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${isText ? "ml-2 max-w-64 opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-64 group-hover:opacity-100"} `}
+                >
+                  Text
+                </span>
+              </button>
+
+              {/* LASER */}
+              <button
+                className={`${btn(isLaser)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
+                onClick={() => {
+                  editor.setCurrentTool("laser");
+                  setShowMore(false);
+                }}
+              >
+                <TldrawUiButtonIcon icon="tool-laser" />
+                <span
+                  className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${isLaser ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+                >
+                  Laser
+                </span>
+              </button>
+
+              {/* HIGHLIGHT */}
+              <button
+                className={`${btn(isHighlight)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
+                onClick={() => {
+                  editor.setCurrentTool("highlight");
+                  setShowMore(false);
+                }}
+              >
+                <TldrawUiButtonIcon icon="tool-highlight" />
+                <span
+                  className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${isHighlight ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+                >
+                  Highlight
+                </span>
+              </button>
+
+              {/* FRAME */}
+              <button
+                className={`${btn(isFrame)} group flex w-auto items-center gap-0 px-3 transition-all duration-300 ease-in-out hover:gap-1`}
+                onClick={() => {
+                  editor.setCurrentTool("frame");
+                  setShowMore(false);
+                }}
+              >
+                <TldrawUiButtonIcon icon="tool-frame" />
+                <span
+                  className={`overflow-hidden text-sm font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${isFrame ? "ml-2 max-w-xs opacity-100" : "max-w-0 opacity-0 group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100"} `}
+                >
+                  Frame
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+        {showTextPanel && isText && (
+          <div className={dropdown}>
+            <DefaultStylePanel />
+          </div>
+        )}
       </div>
     </>
   );
