@@ -13,9 +13,14 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@langchain/core": "^1.1.31",
+    "@langchain/openai": "^1.2.12",
+    "@langchain/textsplitters": "^1.0.1",
+    "@llamaindex/llama-cloud": "^1.8.0",
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@upstash/qstash": "^2.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.576.0",
