@@ -4,13 +4,17 @@ import { DefaultStylePanel, Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
 
 import { TldrawThemeSync } from "./theme-sync";
+import { KnowledgePanel } from "./ui/KnowledgePanel";
 
-export default function AkatsukiCanvas() {
+interface AkatsukiCanvasProps {
+  userId: string;
+}
+
+export default function AkatsukiCanvas({ userId }: AkatsukiCanvasProps) {
   return (
     <div style={{ position: "fixed", inset: 0 }}>
       <Tldraw
         persistenceKey="akatsuki-local-dev"
-        inferDarkMode
         initialState="draw"
         components={{
           ZoomMenu: null,
@@ -24,6 +28,9 @@ export default function AkatsukiCanvas() {
       >
         <TldrawThemeSync />
       </Tldraw>
+      <div className="z-100] pointer-events-none absolute top-20 left-4">
+        <KnowledgePanel userId={userId} />
+      </div>
     </div>
   );
 }
