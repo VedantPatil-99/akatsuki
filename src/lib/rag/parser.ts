@@ -1,4 +1,4 @@
-import { LlamaParseReader } from "@llamaindex/llama-cloud";
+import LlamaCloud from "@llamaindex/llama-cloud";
 
 export const parseDocumentToMarkdown = async (
   fileUrl: string,
@@ -8,12 +8,8 @@ export const parseDocumentToMarkdown = async (
     throw new Error("File URL is required for parsing");
   }
 
-  const reader = new LlamaParseReader({
-    resultType: "markdown",
-    premiumMode: isPremium,
+  const client = new LlamaCloud({
     apiKey: process.env.LLAMA_CLOUD_API_KEY,
-    parsingInstruction:
-      "Extract all text, code blocks, tables, and mathematical formulas accurately. If premium mode is active, heavily prioritize converting diagrams to Mermaid.js syntax.",
   });
 
   const response = await fetch(fileUrl);
@@ -22,11 +18,39 @@ export const parseDocumentToMarkdown = async (
     throw new Error(`Failed to fetch file from URL: ${response.statusText}`);
   }
 
+  // 1. Extract the clean filename from the Supabase URL (ignoring the ?token=... query params)
+  const urlObj = new URL(fileUrl);
+  const cleanFileName = decodeURIComponent(
+    urlObj.pathname.split("/").pop() || "document.pdf"
+  );
+
+  // 2. Convert the response to a Blob
   const blob = await response.blob();
-  const arrayBuffer = await blob.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
 
-  const documents = await reader.loadDataAsContent(buffer);
+  // 3. Wrap it in a native File object so LlamaCloud correctly reads the .pdf/.docx extension
+  const file = new File([blob], cleanFileName, { type: blob.type });
 
-  return documents.map((doc) => doc.text).join("\n\n");
+  // 4. Upload the explicitly named file to LlamaCloud
+  const fileObj = await client.files.create({
+    file: file,
+    purpose: "parse",
+  });
+
+  // 5. Trigger the parsing job
+  const parseResult = await client.parsing.parse({
+    file_id: fileObj.id,
+    tier: isPremium ? "agentic_plus" : "cost_effective",
+    version: "latest",
+    expand: ["markdown"],
+  });
+
+  if (!parseResult.markdown || !parseResult.markdown.pages) {
+    return "";
+  }
+
+  // Safely extract and combine the markdown
+  return parseResult.markdown.pages
+    .map((page) => ("markdown" in page ? page.markdown : null))
+    .filter((text): text is string => text !== null)
+    .join("\n\n");
 };
