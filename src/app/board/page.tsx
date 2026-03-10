@@ -14,6 +14,7 @@ export default async function BoardPage() {
   // The proxy.ts guarantees a user exists here, but we default to true just in case
   const isAnonymous = user?.is_anonymous ?? true;
   const email = user?.email;
+  const userId = user?.id;
 
   // Supabase automatically pulls the avatar_url if they sign in with Google
   const googleIdentity = user?.identities?.find(
@@ -36,7 +37,7 @@ export default async function BoardPage() {
           avatarUrl={avatarUrl}
         />
         <ThemeToggle />
-        <AkatsukiCanvas />
+        {userId && <AkatsukiCanvas userId={userId} />}
       </main>
     </div>
   );
