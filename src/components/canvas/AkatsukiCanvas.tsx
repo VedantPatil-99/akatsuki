@@ -3,8 +3,9 @@
 import { DefaultStylePanel, Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
 
+import { KnowledgePanel } from "@/components/canvas/ui/knowledge-panel/knowledge-panel";
+
 import { TldrawThemeSync } from "./theme-sync";
-import { KnowledgePanel } from "./ui/KnowledgePanel";
 
 interface AkatsukiCanvasProps {
   userId: string;
@@ -28,9 +29,7 @@ export default function AkatsukiCanvas({ userId }: AkatsukiCanvasProps) {
       >
         <TldrawThemeSync />
       </Tldraw>
-      <div className="z-100] pointer-events-none absolute top-20 left-4">
-        <KnowledgePanel userId={userId} />
-      </div>
+      <KnowledgePanel userId={userId} />
     </div>
   );
 }
