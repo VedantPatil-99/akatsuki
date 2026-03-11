@@ -120,7 +120,9 @@ export default function Toolbar() {
         className={`fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-500 ease-out ${
           showToolbar ? "bottom-20" : "bottom-3"
         } ${
-          isIdle ? "pointer-events-none opacity-0" : "opacity-100"
+          isIdle && showToolbar
+            ? "pointer-events-none opacity-0"
+            : "opacity-100"
         } flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 backdrop-blur-md hover:bg-black/90`}
       >
         <div
