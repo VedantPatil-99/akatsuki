@@ -16,6 +16,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@tldraw/editor": "^4.4.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.576.0",
@@ -24,7 +25,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.5.0",
-    "tldraw": "^4.3.2"
+    "tldraw": "^4.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
