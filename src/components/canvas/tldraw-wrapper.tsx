@@ -1,0 +1,48 @@
+"use client";
+
+import { ReactNode } from "react";
+
+import { DefaultStylePanel, Tldraw, TLUiComponents } from "tldraw";
+import "tldraw/tldraw.css";
+
+interface TldrawWrapperProps {
+  children?: ReactNode;
+  components?: Partial<TLUiComponents>;
+  persistenceKey?: string;
+  initialState?: "draw" | "select" | "idle";
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const DEFAULT_COMPONENTS: Partial<TLUiComponents> = {
+  ZoomMenu: null,
+  Minimap: null,
+  StylePanel: (props) => (
+    <div className="absolute right-4 bottom-4 z-50">
+      <DefaultStylePanel {...props} />
+    </div>
+  ),
+};
+
+export function TldrawWrapper({
+  children,
+  components = {},
+  persistenceKey = "akatsuki-local-dev",
+  initialState = "draw",
+  className,
+  style,
+}: TldrawWrapperProps) {
+  const mergedComponents = { ...DEFAULT_COMPONENTS, ...components };
+
+  return (
+    <div className={className} style={style}>
+      <Tldraw
+        persistenceKey={persistenceKey}
+        initialState={initialState}
+        components={mergedComponents}
+      >
+        {children}
+      </Tldraw>
+    </div>
+  );
+}
