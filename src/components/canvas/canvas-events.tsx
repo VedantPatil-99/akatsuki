@@ -20,17 +20,28 @@ export function CanvasEvents({
   const editor = useEditor();
   const activeShapeIds = useRef<TLShapeId[]>([]);
 
-  const { captureHandwriting } = useHandwritingCapture(editor, {
-    previewInNewWindow,
-    onCaptureComplete: onHandwritingCaptured,
-    onError,
-  });
+  const { captureHandwriting, getMemoryContext, addMemoryChunk } =
+    useHandwritingCapture(editor, {
+      previewInNewWindow,
+      onCaptureComplete: onHandwritingCaptured,
+      onError,
+    });
 
   useEffect(() => {
     if (!editor) return;
 
-    // Listen to every change on the whiteboard
+    // Listen to whiteboard changes
     const cleanup = editor.store.listen((entry) => {
+      // Check if deleted shapes were part of memory
+      const removedIds = Object.keys(entry.changes.removed);
+      if (removedIds.length > 0) {
+        // TODO: Implement memory management for deleted shapes
+        console.log("Shapes removed:", removedIds);
+      }
+
+      // Skip capture when using eraser
+      if (editor.getCurrentToolId() === "eraser") return;
+
       const newShapeIds: TLShapeId[] = [];
 
       // Handle newly added shapes
@@ -48,14 +59,23 @@ export function CanvasEvents({
         }
       });
 
-      // If we found any valid pen strokes, update the ref and restart the timer
+      // Handle new pen strokes
       if (newShapeIds.length > 0) {
+        // Remove ghost text when user starts drawing
+        const allShapes = editor.getCurrentPageShapes();
+        const ghostShapes = allShapes.filter(
+          (shape) => shape.type === "text" && shape.meta?.isGhost === true
+        );
+        if (ghostShapes.length > 0) {
+          editor.deleteShapes(ghostShapes.map((s) => s.id));
+        }
+
         activeShapeIds.current = [
           ...new Set([...activeShapeIds.current, ...newShapeIds]),
         ];
         captureHandwriting(activeShapeIds.current);
 
-        // Clear the ref after triggering capture for next batch
+        // Clear captured shapes after debounce
         setTimeout(() => {
           activeShapeIds.current = activeShapeIds.current.filter(
             (id) => !newShapeIds.includes(id)
@@ -67,6 +87,6 @@ export function CanvasEvents({
     return () => cleanup();
   }, [editor, captureHandwriting]);
 
-  // This component renders nothing visually
+  // Component handles canvas events only
   return null;
 }
