@@ -27,7 +27,7 @@ export default function AkatsukiCanvas({ userId }: AkatsukiCanvasProps) {
       <TldrawWrapper style={{ position: "absolute", inset: 0 }}>
         <TldrawThemeSync />
         <CanvasEvents
-          onHandwritingCaptured={handleHandwritingCaptured}
+          userId={userId}
           onError={handleError}
           previewInNewWindow={true}
         />
