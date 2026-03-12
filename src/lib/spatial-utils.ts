@@ -97,3 +97,22 @@ export function findShapesInBounds(
     })
     .map((shape) => shape.id);
 }
+
+/**
+ * Calculate the perfect spawn position for AI Ghost Text
+ * Spawns 20px to the right of the handwritten word, centered vertically
+ */
+export const calculateGhostTextPosition = (
+  editor: Editor,
+  shapeIds: TLShapeId[]
+): { x: number; y: number } => {
+  const bounds = calculateShapeBounds(editor, shapeIds);
+
+  // 20px padding to the right of the last stroke
+  const x = bounds.maxX + 20;
+
+  // Align to the vertical center of the drawn word
+  const y = bounds.minY + (bounds.maxY - bounds.minY) / 2;
+
+  return { x, y };
+};
