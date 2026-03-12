@@ -5,27 +5,38 @@ import { useEffect, useRef } from "react";
 import { type TLShapeId, useEditor } from "tldraw";
 
 import { useHandwritingCapture } from "@/lib/hooks/use-handwriting-capture";
+import { GhostTextManager } from "@/lib/utils/ghost-text-manager";
 
 interface CanvasEventsProps {
-  onHandwritingCaptured?: (blob: Blob, shapeIds: TLShapeId[]) => void;
+  userId: string; // <-- Needs userId to pass to the hook
   onError?: (error: Error) => void;
   previewInNewWindow?: boolean;
 }
 
 export function CanvasEvents({
-  onHandwritingCaptured,
+  userId,
   onError,
   previewInNewWindow = false,
 }: CanvasEventsProps) {
   const editor = useEditor();
   const activeShapeIds = useRef<TLShapeId[]>([]);
+  const ghostManager = useRef<GhostTextManager | null>(null);
 
-  const { captureHandwriting, getMemoryContext, addMemoryChunk } =
-    useHandwritingCapture(editor, {
-      previewInNewWindow,
-      onCaptureComplete: onHandwritingCaptured,
-      onError,
-    });
+  useEffect(() => {
+    if (editor && !ghostManager.current) {
+      ghostManager.current = new GhostTextManager(editor);
+    }
+  }, [editor]);
+
+  const { captureHandwriting } = useHandwritingCapture(editor, {
+    userId,
+    previewInNewWindow,
+    onError,
+    // The hook hands us the final AI prediction and exact coordinates
+    onCaptureComplete: (predictedText, position) => {
+      ghostManager.current?.createGhostText(predictedText, position);
+    },
+  });
 
   useEffect(() => {
     if (!editor) return;
@@ -61,18 +72,13 @@ export function CanvasEvents({
 
       // Handle new pen strokes
       if (newShapeIds.length > 0) {
-        // Remove ghost text when user starts drawing
-        const allShapes = editor.getCurrentPageShapes();
-        const ghostShapes = allShapes.filter(
-          (shape) => shape.type === "text" && shape.meta?.isGhost === true
-        );
-        if (ghostShapes.length > 0) {
-          editor.deleteShapes(ghostShapes.map((s) => s.id));
-        }
+        // User started drawing again! Instantly destroy any visible ghost text
+        ghostManager.current?.cleanupGhostsOnNewInput();
 
         activeShapeIds.current = [
           ...new Set([...activeShapeIds.current, ...newShapeIds]),
         ];
+
         captureHandwriting(activeShapeIds.current);
 
         // Clear captured shapes after debounce
@@ -80,7 +86,7 @@ export function CanvasEvents({
           activeShapeIds.current = activeShapeIds.current.filter(
             (id) => !newShapeIds.includes(id)
           );
-        }, 1100); // Slightly longer than the debounce delay
+        }, 1100);
       }
     });
 
