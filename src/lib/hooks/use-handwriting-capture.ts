@@ -5,53 +5,54 @@ import type { Editor, TLShapeId } from "tldraw";
 import { useDebouncedCallback } from "@/lib/hooks/use-debounced-callback";
 
 import {
+  calculateGhostTextPosition,
   calculateShapeBounds,
   expandBounds,
   findShapesInBounds,
 } from "../spatial-utils";
 import { MemoryChunk } from "../types/handwriting";
 
+// Extract exact type from Tldraw to satisfy strict TypeScript
+type TldrawImageOptions = Parameters<Editor["toImage"]>[1];
+
 export interface HandwritingCaptureOptions {
+  userId: string; // Required for the API call and Supabase RLS
   contextPadding?: number;
-  exportOptions?: {
-    format?: "png" | "jpeg" | "webp" | "svg";
-    background?: boolean;
-    padding?: number;
-  };
-  onCaptureComplete?: (blob: Blob, shapeIds: TLShapeId[]) => void;
+  exportOptions?: TldrawImageOptions;
+  // Updated signature to return the AI's prediction and exact canvas coordinates
+  onCaptureComplete?: (
+    predictedText: string,
+    position: { x: number; y: number }
+  ) => void;
   onError?: (error: Error) => void;
   previewInNewWindow?: boolean;
   maxMemoryChunks?: number;
 }
 
-const DEFAULT_OPTIONS: Required<HandwritingCaptureOptions> = {
+const DEFAULT_OPTIONS = {
   contextPadding: 400,
   exportOptions: {
-    format: "png",
+    format: "png" as const, // Strict literal type to satisfy Tldraw
     background: true,
     padding: 32,
   },
   onCaptureComplete: () => {},
   onError: () => {},
   previewInNewWindow: false,
-  maxMemoryChunks: 5, // Keep 5 chunks
+  maxMemoryChunks: 5,
 };
 
 export function useHandwritingCapture(
   editor: Editor,
-  options: HandwritingCaptureOptions = {}
+  options: HandwritingCaptureOptions
 ) {
   const opts = useMemo(() => ({ ...DEFAULT_OPTIONS, ...options }), [options]);
-
-  // Memory chunks for context awareness
   const contextMemory = useRef<MemoryChunk[]>([]);
 
-  // Get memory context as string
   const getMemoryContext = useCallback(() => {
     return contextMemory.current.map((m) => m.text).join(" ");
   }, []);
 
-  // Add memory chunk with cleanup
   const addMemoryChunk = useCallback(
     (shapeIds: TLShapeId[], text: string) => {
       contextMemory.current.push({
@@ -60,9 +61,8 @@ export function useHandwritingCapture(
         timestamp: Date.now(),
       });
 
-      // Keep only last N chunks
-      if (contextMemory.current.length > opts.maxMemoryChunks!) {
-        contextMemory.current.shift(); // Remove oldest
+      if (contextMemory.current.length > opts.maxMemoryChunks) {
+        contextMemory.current.shift();
       }
     },
     [opts.maxMemoryChunks]
@@ -76,7 +76,7 @@ export function useHandwritingCapture(
         try {
           // Dynamic padding for zoom levels
           const camera = editor.getCamera();
-          const contextPadding = opts.contextPadding! / camera.z;
+          const contextPadding = opts.contextPadding! / (camera.z as number);
 
           // 1. Calculate shape boundaries
           const shapeBounds = calculateShapeBounds(editor, shapeIds);
@@ -103,43 +103,50 @@ export function useHandwritingCapture(
             window.open(imageUrl, "_blank");
           }
 
-          // API integration placeholder
           const memoryContext = getMemoryContext();
-          console.log(
-            "Sending blob to OCR with memory context:",
-            memoryContext
-          );
+          console.log("🧠 Sending to AI. Memory context:", memoryContext);
 
-          // Placeholder API integration - ready for actual endpoint
-          /*
+          // ==========================================
+          // 🚀 THE FINAL RAG API CONNECTION
+          // ==========================================
           const formData = new FormData();
           formData.append("file", blob);
           formData.append("memory", memoryContext);
-          
-          const res = await fetch("/api/ai/autocomplete", { 
-            method: "POST", 
-            body: formData 
+          formData.append("userId", opts.userId);
+
+          const res = await fetch("/api/ai/autocomplete", {
+            method: "POST",
+            body: formData,
           });
+
+          if (!res.ok) {
+            throw new Error(`API responded with status: ${res.status}`);
+          }
+
           const data = await res.json();
-          
-          // 💡 Fail-Fast for accidental scribbles
-          if (data.ocrText.length < 3) return;
+          console.log("🤖 AI Response:", data);
 
-          // Add new memory chunk with OCR result
+          // Fail-Fast: Ignore accidental scribbles or empty reads
+          if (!data.ocrText || data.ocrText.length < 3) return;
+
+          // Add the successful read to our rolling memory
           addMemoryChunk(shapesToExport, data.ocrText);
-          */
 
-          // 7. Call completion callback
-          opts.onCaptureComplete?.(blob, shapesToExport);
+          // If the AI predicted a next word, calculate where it goes and render it!
+          if (data.predictedText) {
+            // Calculate spawn position 20px to the right of the current stroke
+            const position = calculateGhostTextPosition(editor, shapeIds);
 
-          console.log("✅ Context-Aware Capture complete!", blob);
+            // Send the prediction back up to canvas-events.tsx to be drawn
+            opts.onCaptureComplete?.(data.predictedText, position);
+          }
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));
           opts.onError?.(err);
-          console.error("Failed to export context:", error);
+          console.error("❌ Handwriting pipeline failed:", error);
         }
       },
-      [editor, opts, getMemoryContext]
+      [editor, opts, getMemoryContext, addMemoryChunk]
     ),
     1000
   );
