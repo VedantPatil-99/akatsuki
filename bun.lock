@@ -9,6 +9,7 @@
         "@supabase/ssr": "^0.8.0",
         "@supabase/supabase-js": "^2.95.3",
         "@tldraw/editor": "^4.4.0",
+        "@toolwind/corner-shape": "^0.0.8-3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-react": "^0.576.0",
@@ -515,6 +516,8 @@
     "@tldraw/utils": ["@tldraw/utils@4.4.0", "", { "dependencies": { "jittered-fractional-indexing": "^1.0.0", "lodash.isequal": "^4.5.0", "lodash.isequalwith": "^4.4.0", "lodash.throttle": "^4.1.1", "lodash.uniq": "^4.5.0" } }, "sha512-/YLoWAN5hVFm4xlXQnb878tpGREuw6A5clVt12cro4rq2fiMC8fz1Ac53CCDxxjWsmAaiTldnjunRVBhvi2AOQ=="],
 
     "@tldraw/validate": ["@tldraw/validate@4.4.0", "", { "dependencies": { "@tldraw/utils": "4.4.0" } }, "sha512-yZgjmLSbcei+plPQmu198KcsWKyK9cl2Nl4jnJ7WruHlKYTOlzjYrEmw0UdOG1JR3Odgf9tPmrep47BzMkf3Yg=="],
+
+    "@toolwind/corner-shape": ["@toolwind/corner-shape@0.0.8-3", "", { "dependencies": { "@types/node": "^20.4.1" } }, "sha512-MPIF81F2bhtXbzEeXF0vnL+PKpnopCHOzBspOkK8osMzWQvPUujZn2XZOMdsu4DF6wsVbbRYQtdsJr486HmIPQ=="],
 
     "@trivago/prettier-plugin-sort-imports": ["@trivago/prettier-plugin-sort-imports@6.0.2", "", { "dependencies": { "@babel/generator": "^7.28.0", "@babel/parser": "^7.28.0", "@babel/traverse": "^7.28.0", "@babel/types": "^7.28.0", "javascript-natural-sort": "^0.7.1", "lodash-es": "^4.17.21", "minimatch": "^9.0.0", "parse-imports-exports": "^0.2.4" }, "peerDependencies": { "@vue/compiler-sfc": "3.x", "prettier": "2.x - 3.x", "prettier-plugin-ember-template-tag": ">= 2.0.0", "prettier-plugin-svelte": "3.x", "svelte": "4.x || 5.x" }, "optionalPeers": ["@vue/compiler-sfc", "prettier-plugin-ember-template-tag", "prettier-plugin-svelte", "svelte"] }, "sha512-3DgfkukFyC/sE/VuYjaUUWoFfuVjPK55vOFDsxD56XXynFMCZDYFogH2l/hDfOsQAm1myoU/1xByJ3tWqtulXA=="],
 
