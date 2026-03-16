@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
     // This forces Next.js to only bundle the specific icons you use
     optimizePackageImports: ["@phosphor-icons/react"],
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "**",
+      },
+    ],
+  },
   reactCompiler: true,
 };
 
