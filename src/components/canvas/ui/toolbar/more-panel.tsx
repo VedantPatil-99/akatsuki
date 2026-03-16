@@ -26,7 +26,6 @@ export const MorePanel = ({
           key={tool.id}
           label={tool.label}
           icon={tool.icon}
-          isTldrawIcon
           isActive={activeTool === tool.id}
           isExpanded={activeTool === tool.id}
           onClick={() => {

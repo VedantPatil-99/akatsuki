@@ -15,7 +15,7 @@ export const DropdownPanel = ({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 10, scale: 0.95 }}
       transition={{ duration: 0.15, ease: "easeOut" }}
-      className={`absolute bottom-14 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-white/20 bg-black/90 p-1 shadow-xl backdrop-blur-md ${className}`}
+      className={`border-border bg-popover/95 text-popover-foreground absolute bottom-14 left-1/2 z-50 -translate-x-1/2 rounded-xl border p-1 shadow-xl backdrop-blur-md ${className}`}
     >
       {children}
     </motion.div>

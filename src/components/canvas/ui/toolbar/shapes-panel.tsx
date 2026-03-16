@@ -48,10 +48,10 @@ export const ShapesPanel = ({
   };
 
   const btnClasses = (isActive: boolean) =>
-    `flex h-10 w-10 items-center justify-center rounded-lg text-white transition-all duration-200 ease-out active:scale-90 ${
+    `flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-200 ease-out active:scale-90 ${
       isActive
-        ? "bg-blue-600 ring-2 ring-blue-400 shadow-blue-500/20"
-        : "bg-black/70 backdrop-blur-md hover:bg-blue-400"
+        ? "bg-primary text-primary-foreground shadow-sm ring-2 ring-ring"
+        : "bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground"
     }`;
 
   return (
@@ -70,7 +70,7 @@ export const ShapesPanel = ({
         </button>
       ))}
       <button
-        className={btnClasses(activeTool === "arrow")}
+        className={cn(btnClasses(activeTool === "arrow"), "cursor-pointer")}
         onClick={() => {
           editor.setCurrentTool("arrow");
           closePanel();
@@ -79,7 +79,7 @@ export const ShapesPanel = ({
         <ArrowUpRightIcon size={20} />
       </button>
       <button
-        className={btnClasses(activeTool === "line")}
+        className={cn(btnClasses(activeTool === "line"), "cursor-pointer")}
         onClick={() => {
           editor.setCurrentTool("line");
           closePanel();
