@@ -27,15 +27,15 @@ export const ToolbarButton = ({
   const [isHovered, setIsHovered] = useState(false);
 
   const activeClasses = isActive
-    ? "bg-blue-600 ring-2 ring-blue-400 shadow-blue-500/20 text-white"
-    : "bg-black/70 backdrop-blur-md hover:bg-blue-400 text-white";
+    ? "bg-primary text-primary-foreground shadow-sm ring-2 ring-ring"
+    : "bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground";
 
   const showLabel = isExpanded || isHovered;
 
   const slowSmoothSpring: Transition = {
     type: "spring",
-    stiffness: 150, // Lowered from 400 to make it significantly slower
-    damping: 22, // Adjusted to prevent excessive bouncing
+    stiffness: 150,
+    damping: 22,
     mass: 1,
   };
 
@@ -52,7 +52,7 @@ export const ToolbarButton = ({
         gap: showLabel ? "4px" : "0px",
       }}
       transition={slowSmoothSpring}
-      className={`flex h-10 min-w-[40px] cursor-pointer items-center justify-center rounded-lg px-3 ${activeClasses} ${className}`}
+      className={`corner-squircle flex h-10 min-w-[40px] cursor-pointer items-center justify-center rounded-2xl px-2 py-1 ${activeClasses} ${className}`}
     >
       <motion.div
         layout="position"
