@@ -1,8 +1,9 @@
-// components/canvas/AkatsukiCanvas.tsx
 "use client";
 
-import { Tldraw } from "tldraw";
+import { DefaultStylePanel, Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
+
+import { TldrawThemeSync } from "./theme-sync";
 
 export default function AkatsukiCanvas() {
   return (
@@ -14,8 +15,15 @@ export default function AkatsukiCanvas() {
         components={{
           ZoomMenu: null,
           Minimap: null,
+          StylePanel: (props) => (
+            <div className="absolute right-4 bottom-4 z-50">
+              <DefaultStylePanel {...props} />
+            </div>
+          ),
         }}
-      />
+      >
+        <TldrawThemeSync />
+      </Tldraw>
     </div>
   );
 }
