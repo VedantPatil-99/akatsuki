@@ -48,14 +48,14 @@ export const ShapesPanel = ({
   };
 
   const btnClasses = (isActive: boolean) =>
-    `flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-200 ease-out active:scale-90 ${
+    `flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg transition-all duration-200 ease-out active:scale-90 ${
       isActive
         ? "bg-primary text-primary-foreground shadow-sm ring-2 ring-ring"
         : "bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground"
     }`;
 
   return (
-    <DropdownPanel className="grid w-56 grid-cols-4 place-items-center justify-center gap-2 p-2">
+    <DropdownPanel className="grid w-48 grid-cols-4 place-items-center justify-center gap-1 p-1.5 sm:w-56 sm:gap-2">
       {SHAPES.map((shape) => (
         <button
           key={shape.id}

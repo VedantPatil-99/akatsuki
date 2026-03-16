@@ -6,4 +6,5 @@ export interface BasePanelProps {
   editor: Editor;
   activeTool: string;
   closePanel: () => void;
+  align?: "start" | "center" | "end";
 }

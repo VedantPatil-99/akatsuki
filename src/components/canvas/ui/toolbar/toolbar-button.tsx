@@ -52,7 +52,7 @@ export const ToolbarButton = ({
         gap: showLabel ? "4px" : "0px",
       }}
       transition={slowSmoothSpring}
-      className={`corner-squircle flex h-10 min-w-[40px] cursor-pointer items-center justify-center rounded-2xl px-2 py-1 ${activeClasses} ${className}`}
+      className={`corner-squircle flex h-9 min-w-[36px] cursor-pointer items-center justify-center rounded-2xl px-2 sm:h-10 sm:min-w-[40px] sm:px-3 ${activeClasses} ${className}`}
     >
       <motion.div
         layout="position"
@@ -69,7 +69,7 @@ export const ToolbarButton = ({
           opacity: showLabel ? 1 : 0,
         }}
         transition={slowSmoothSpring}
-        className="flex items-center overflow-hidden text-sm font-medium whitespace-nowrap"
+        className="flex items-center overflow-hidden text-xs font-medium whitespace-nowrap sm:text-sm"
       >
         {label}
       </motion.div>

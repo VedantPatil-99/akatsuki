@@ -50,13 +50,11 @@ export function Toolbar() {
           setShowToolbar(!showToolbar);
           resetTimer();
         }}
-        // Updated colors to support the theme
-        className={`fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-500 ease-out ${showToolbar ? "bottom-20" : "bottom-3"} ${isIdle && showToolbar ? "pointer-events-none opacity-0" : "opacity-100"} border-border bg-background/80 text-foreground hover:bg-accent hover:text-accent-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border shadow-sm backdrop-blur-md`}
+        className={`fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-500 ease-out ${showToolbar ? "bottom-16 sm:bottom-20" : "bottom-2 sm:bottom-3"} ${isIdle && showToolbar ? "pointer-events-none opacity-0" : "opacity-100"} border-border bg-background/80 text-foreground hover:bg-accent hover:text-accent-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border shadow-sm backdrop-blur-md`}
       >
         <div
           className={`transition-transform duration-300 ${showToolbar ? "rotate-180" : ""}`}
         >
-          {/* Changed from TldrawUiButtonIcon to direct rendering to avoid rendering errors */}
           <CaretUpIcon size={15} weight="bold" />
         </div>
       </button>
@@ -67,8 +65,7 @@ export function Toolbar() {
         id="toolbar"
         onPointerEnter={resetTimer}
         onPointerMove={resetTimer}
-        // Updated colors to support the theme
-        className={`fixed left-1/2 -translate-x-1/2 transition-all duration-500 ease-out ${showToolbar ? "bottom-4 opacity-100" : "pointer-events-none -bottom-24 opacity-0"} border-border bg-background/80 flex gap-2 rounded-xl border p-2 shadow-lg backdrop-blur-lg`}
+        className={`fixed left-1/2 -translate-x-1/2 transition-all duration-500 ease-out ${showToolbar ? "bottom-3 opacity-100 sm:bottom-4" : "pointer-events-none -bottom-24 opacity-0"} border-border bg-background/80 flex w-max max-w-[calc(100vw-1rem)] gap-1 rounded-xl border p-1 shadow-lg backdrop-blur-lg sm:gap-2 sm:p-2`}
       >
         {/* PEN */}
         <div className="relative">
@@ -81,7 +78,7 @@ export function Toolbar() {
           />
           <AnimatePresence>
             {activePanel === "pen" && (
-              <DropdownPanel>
+              <DropdownPanel align="start">
                 <DefaultStylePanel />
               </DropdownPanel>
             )}
@@ -162,6 +159,7 @@ export function Toolbar() {
                 editor={editor}
                 activeTool={activeTool}
                 closePanel={() => setActivePanel(null)}
+                align="end"
               />
             )}
           </AnimatePresence>
