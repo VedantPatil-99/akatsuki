@@ -11,7 +11,7 @@ import {
   TextTIcon,
 } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "motion/react";
-import { DefaultStylePanel, TldrawUiButtonIcon } from "tldraw";
+import { DefaultStylePanel } from "tldraw";
 
 import { DropdownPanel } from "./dropdown-panel";
 import { MorePanel } from "./more-panel";
@@ -20,11 +20,7 @@ import { ToolbarButton } from "./toolbar-button";
 import { useToolbar } from "./use-toolbar";
 
 const SIMPLE_TOOLS = [
-  {
-    id: "eraser",
-    label: "Eraser",
-    icon: <EraserIcon size={20} />,
-  },
+  { id: "eraser", label: "Eraser", icon: <EraserIcon size={20} /> },
   { id: "select", label: "Select", icon: <SelectionPlusIcon size={20} /> },
   { id: "hand", label: "Move", icon: <ArrowsOutCardinalIcon size={20} /> },
 ];
@@ -54,12 +50,14 @@ export function Toolbar() {
           setShowToolbar(!showToolbar);
           resetTimer();
         }}
-        className={`fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-500 ease-out ${showToolbar ? "bottom-20" : "bottom-3"} ${isIdle && showToolbar ? "pointer-events-none opacity-0" : "opacity-100"} flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/70 backdrop-blur-md hover:bg-black/90`}
+        // Updated colors to support the theme
+        className={`fixed left-1/2 z-50 -translate-x-1/2 transition-all duration-500 ease-out ${showToolbar ? "bottom-20" : "bottom-3"} ${isIdle && showToolbar ? "pointer-events-none opacity-0" : "opacity-100"} border-border bg-background/80 text-foreground hover:bg-accent hover:text-accent-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border shadow-sm backdrop-blur-md`}
       >
         <div
           className={`transition-transform duration-300 ${showToolbar ? "rotate-180" : ""}`}
         >
-          <TldrawUiButtonIcon icon={<CaretUpIcon size={15} weight="bold" />} />
+          {/* Changed from TldrawUiButtonIcon to direct rendering to avoid rendering errors */}
+          <CaretUpIcon size={15} weight="bold" />
         </div>
       </button>
 
@@ -69,7 +67,8 @@ export function Toolbar() {
         id="toolbar"
         onPointerEnter={resetTimer}
         onPointerMove={resetTimer}
-        className={`fixed left-1/2 -translate-x-1/2 transition-all duration-500 ease-out ${showToolbar ? "bottom-4 opacity-100" : "pointer-events-none -bottom-24 opacity-0"} flex gap-2 rounded-xl border border-white/20 bg-black/70 p-2 shadow-lg backdrop-blur-lg`}
+        // Updated colors to support the theme
+        className={`fixed left-1/2 -translate-x-1/2 transition-all duration-500 ease-out ${showToolbar ? "bottom-4 opacity-100" : "pointer-events-none -bottom-24 opacity-0"} border-border bg-background/80 flex gap-2 rounded-xl border p-2 shadow-lg backdrop-blur-lg`}
       >
         {/* PEN */}
         <div className="relative">
@@ -95,7 +94,7 @@ export function Toolbar() {
             key={t.id}
             label={t.label}
             icon={t.icon}
-            isTldrawIcon
+            // Removed isTldrawIcon since we mapped Phosphor Icons directly
             isActive={activeTool === t.id}
             isExpanded={activeTool === t.id && !activePanel}
             onClick={() => setTool(t.id)}
@@ -130,7 +129,7 @@ export function Toolbar() {
           <ToolbarButton
             label="Text"
             icon={<TextTIcon size={20} />}
-            isTldrawIcon
+            // Removed isTldrawIcon
             isActive={activeTool === "text"}
             isExpanded={activeTool === "text" && !activePanel}
             onClick={() => togglePanel("text", "text")}
@@ -149,7 +148,7 @@ export function Toolbar() {
           <ToolbarButton
             label="More"
             icon={<DotsThreeOutlineIcon size={20} />}
-            isTldrawIcon
+            // Removed isTldrawIcon
             isActive={isMoreTool || activePanel === "more"}
             isExpanded={
               (isMoreTool || activePanel === "more") &&
