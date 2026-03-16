@@ -91,7 +91,6 @@ export function Toolbar() {
             key={t.id}
             label={t.label}
             icon={t.icon}
-            // Removed isTldrawIcon since we mapped Phosphor Icons directly
             isActive={activeTool === t.id}
             isExpanded={activeTool === t.id && !activePanel}
             onClick={() => setTool(t.id)}
@@ -126,7 +125,6 @@ export function Toolbar() {
           <ToolbarButton
             label="Text"
             icon={<TextTIcon size={20} />}
-            // Removed isTldrawIcon
             isActive={activeTool === "text"}
             isExpanded={activeTool === "text" && !activePanel}
             onClick={() => togglePanel("text", "text")}
@@ -145,7 +143,6 @@ export function Toolbar() {
           <ToolbarButton
             label="More"
             icon={<DotsThreeOutlineIcon size={20} />}
-            // Removed isTldrawIcon
             isActive={isMoreTool || activePanel === "more"}
             isExpanded={
               (isMoreTool || activePanel === "more") &&
