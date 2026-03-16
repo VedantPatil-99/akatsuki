@@ -4,12 +4,11 @@ import { Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
 
 import { TldrawThemeSync } from "./theme-sync";
-import Toolbar from "./ui/Toolbar";
+import { Toolbar } from "./ui/toolbar";
 
 function CanvasUI() {
   return <Toolbar />;
 }
-
 export default function AkatsukiCanvas() {
   return (
     <div style={{ position: "fixed", inset: 0 }}>
@@ -19,13 +18,13 @@ export default function AkatsukiCanvas() {
         initialState="draw"
         components={{
           Toolbar: null,
+          StylePanel: null,
           ZoomMenu: null,
           Minimap: null,
-          StylePanel: null,
         }}
       >
-        <CanvasUI />
         <TldrawThemeSync />
+        <CanvasUI />
       </Tldraw>
     </div>
   );
