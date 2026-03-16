@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 
-import { DefaultStylePanel, Tldraw, TLUiComponents } from "tldraw";
+import { Tldraw, TLUiComponents } from "tldraw";
 import "tldraw/tldraw.css";
 
 interface TldrawWrapperProps {
@@ -15,13 +15,10 @@ interface TldrawWrapperProps {
 }
 
 const DEFAULT_COMPONENTS: Partial<TLUiComponents> = {
+  Toolbar: null,
+  StylePanel: null,
   ZoomMenu: null,
   Minimap: null,
-  StylePanel: (props) => (
-    <div className="absolute right-4 bottom-4 z-50">
-      <DefaultStylePanel {...props} />
-    </div>
-  ),
 };
 
 export function TldrawWrapper({

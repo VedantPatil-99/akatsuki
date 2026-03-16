@@ -1,15 +1,21 @@
 "use client";
 
 import type { TLShapeId } from "tldraw";
+import "tldraw/tldraw.css";
 
 import { KnowledgePanel } from "@/components/canvas/ui/knowledge-panel/knowledge-panel";
 
 import { CanvasEvents } from "./canvas-events";
 import { TldrawThemeSync } from "./theme-sync";
 import { TldrawWrapper } from "./tldraw-wrapper";
+import { Toolbar } from "./ui/toolbar";
 
 interface AkatsukiCanvasProps {
   userId: string;
+}
+
+function CanvasUI() {
+  return <Toolbar />;
 }
 
 export default function AkatsukiCanvas({ userId }: AkatsukiCanvasProps) {
@@ -31,6 +37,7 @@ export default function AkatsukiCanvas({ userId }: AkatsukiCanvasProps) {
           onError={handleError}
           previewInNewWindow={true}
         />
+        <CanvasUI />
       </TldrawWrapper>
       <KnowledgePanel userId={userId} />
     </div>
