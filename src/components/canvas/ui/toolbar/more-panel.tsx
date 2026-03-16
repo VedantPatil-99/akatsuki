@@ -18,9 +18,10 @@ export const MorePanel = ({
   editor,
   activeTool,
   closePanel,
+  align = "center",
 }: BasePanelProps) => {
   return (
-    <DropdownPanel className="flex w-auto flex-col gap-2 p-2">
+    <DropdownPanel align={align} className="flex w-auto flex-col gap-2 p-2">
       {MORE_TOOLS.map((tool) => (
         <ToolbarButton
           key={tool.id}
