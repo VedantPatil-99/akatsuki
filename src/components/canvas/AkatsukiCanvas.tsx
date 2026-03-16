@@ -3,6 +3,7 @@
 import { Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
 
+import { TldrawThemeSync } from "./theme-sync";
 import Toolbar from "./ui/Toolbar";
 
 function CanvasUI() {
@@ -24,6 +25,7 @@ export default function AkatsukiCanvas() {
         }}
       >
         <CanvasUI />
+        <TldrawThemeSync />
       </Tldraw>
     </div>
   );
