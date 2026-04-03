@@ -5,6 +5,8 @@ import { ReactNode } from "react";
 import { Tldraw, TLUiComponents } from "tldraw";
 import "tldraw/tldraw.css";
 
+import { AIGhostShapeUtil } from "./shapes/ai-ghost-shape/ai-ghost-shape-util";
+
 interface TldrawWrapperProps {
   children?: ReactNode;
   components?: Partial<TLUiComponents>;
@@ -20,6 +22,8 @@ const DEFAULT_COMPONENTS: Partial<TLUiComponents> = {
   ZoomMenu: null,
   Minimap: null,
 };
+
+const customShapeUtils = [AIGhostShapeUtil];
 
 export function TldrawWrapper({
   children,
@@ -37,6 +41,7 @@ export function TldrawWrapper({
         persistenceKey={persistenceKey}
         initialState={initialState}
         components={mergedComponents}
+        shapeUtils={customShapeUtils}
       >
         {children}
       </Tldraw>
