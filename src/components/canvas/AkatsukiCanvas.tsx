@@ -1,6 +1,5 @@
 "use client";
 
-import type { TLShapeId } from "tldraw";
 import "tldraw/tldraw.css";
 
 import { KnowledgePanel } from "@/components/canvas/ui/knowledge-panel/knowledge-panel";
@@ -8,22 +7,39 @@ import { KnowledgePanel } from "@/components/canvas/ui/knowledge-panel/knowledge
 import { CanvasEvents } from "./canvas-events";
 import { TldrawThemeSync } from "./theme-sync";
 import { TldrawWrapper } from "./tldraw-wrapper";
+import { TopRightControls } from "./top-right-controls";
 import { Toolbar } from "./ui/toolbar";
 
 interface AkatsukiCanvasProps {
   userId: string;
+  isAnonymous: boolean;
+  email?: string;
+  avatarUrl?: string;
 }
 
-function CanvasUI() {
-  return <Toolbar />;
+function CanvasUI({
+  isAnonymous,
+  email,
+  avatarUrl,
+}: Omit<AkatsukiCanvasProps, "userId">) {
+  return (
+    <>
+      <Toolbar />
+      <TopRightControls
+        isAnonymous={isAnonymous}
+        email={email}
+        avatarUrl={avatarUrl}
+      />
+    </>
+  );
 }
 
-export default function AkatsukiCanvas({ userId }: AkatsukiCanvasProps) {
-  const handleHandwritingCaptured = (blob: Blob, shapeIds: TLShapeId[]) => {
-    // TODO: Send to OCR service in Phase 3
-    console.log("Handwriting captured for OCR:", { blob, shapeIds });
-  };
-
+export default function AkatsukiCanvas({
+  userId,
+  isAnonymous,
+  email,
+  avatarUrl,
+}: AkatsukiCanvasProps) {
   const handleError = (error: Error) => {
     console.error("Handwriting capture failed:", error);
   };
@@ -37,7 +53,11 @@ export default function AkatsukiCanvas({ userId }: AkatsukiCanvasProps) {
           onError={handleError}
           previewInNewWindow={true}
         />
-        <CanvasUI />
+        <CanvasUI
+          isAnonymous={isAnonymous}
+          email={email}
+          avatarUrl={avatarUrl}
+        />
       </TldrawWrapper>
       <KnowledgePanel userId={userId} />
     </div>
