@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
+import { Groq } from "groq-sdk";
 
-// Initialize Supabase Admin Client
-// We use the Service Role Key here so the backend can securely query the DB
-// on behalf of the user without needing to pass JWT auth headers from the canvas.
+// Run on the Edge for zero cold starts globally
+export const runtime = "edge";
+
+// Initialize Supabase Admin for secure backend DB queries without JWTs
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!
@@ -18,8 +20,9 @@ interface SearchResultRow {
   similarity: number;
 }
 
-// Initialize Gemini (Ensure GEMINI_API_KEY is in your .env.local)
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Initialize AI Clients
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }); // For Vision OCR
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY }); // For High-Speed Prediction
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +31,10 @@ export async function POST(req: NextRequest) {
     const memory = formData.get("memory") as string | null;
     const userId = formData.get("userId") as string | null;
 
-    // 1. Fail-Fast Validation
+    // OPTIMIZATION: Extract the cached context from the frontend
+    const cachedContext = formData.get("cachedContext") as string | null;
+
+    // 1. Validate required fields
     if (!file || !userId) {
       return NextResponse.json(
         { error: "Missing required fields (file or userId)" },
@@ -36,13 +42,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Convert Blob to Base64 for Gemini Vision
+    // 2. Prepare Image Blob for Gemini Vision
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const base64Image = buffer.toString("base64");
 
-    // 3. STEP A: OCR (Optical Character Recognition) via Gemini 2.5 Flash
-    // We use a strict prompt to ensure it ONLY outputs the text it sees.
+    // 3. OCR via Gemini 2.5 Flash Vision
     const ocrResponse = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [
@@ -53,95 +58,114 @@ export async function POST(req: NextRequest) {
 
     const ocrText = ocrResponse.text?.trim() || "";
 
-    // 4. Fail-Fast: Ignore scribbles, empty reads, or accidental dots
-    // This saves you money by aborting before calling Cohere or Supabase!
+    // 4. Fail-Fast: Abort on empty or scribble reads to save DB/LLM costs
     if (ocrText === "EMPTY" || ocrText.length < 2) {
       return NextResponse.json({ predictedText: null, ocrText: "" });
     }
 
-    // Combine the rolling memory with the newly read text
     const fullContextQuery = `${memory || ""} ${ocrText}`.trim();
 
-    // 5. STEP B: Embed the Search Query (Cohere)
-    const cohereRes = await fetch("https://api.cohere.ai/v2/embed", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        texts: [fullContextQuery],
-        model: "embed-v4.0",
-        input_type: "search_query", // FIX: Must be snake_case!
-        embedding_types: ["float"], // FIX: Must be snake_case!
-      }),
-    });
+    // OPTIMIZATION: Initialize textbook context with the cache
+    let textbookContext = cachedContext;
 
-    if (!cohereRes.ok) {
-      const errorText = await cohereRes.text();
-      console.error("❌ Cohere API Rejected Request:", errorText);
-      throw new Error(`Cohere embedding failed: ${errorText}`);
-    }
+    // OPTIMIZATION: Only hit Cohere and Supabase if the cache is empty!
+    if (!textbookContext) {
+      // 5. Embed the Context Query (Cohere)
+      const cohereRes = await fetch("https://api.cohere.com/v2/embed", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.COHERE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          texts: [fullContextQuery],
+          model: "embed-v4.0",
+          input_type: "search_query",
+          embedding_types: ["float"],
+        }),
+      });
 
-    const cohereData = await cohereRes.json();
-    const queryEmbedding = cohereData.embeddings.float
-      ? cohereData.embeddings.float[0]
-      : cohereData.embeddings[0]; // Fallback depending on exact API version response
-
-    // 6. STEP C: RAG Search (Querying Supabase Hybrid Search)
-    const { data: searchResults, error: searchError } = await supabaseAdmin.rpc(
-      "match_documents_hybrid",
-      {
-        query_embedding: queryEmbedding,
-        query_text: fullContextQuery,
-        match_count: 3, // Fetch the top 3 most relevant textbook chunks
-        p_user_id: userId,
+      if (!cohereRes.ok) {
+        const errorText = await cohereRes.text();
+        console.error("❌ Cohere API Rejected Request:", errorText);
+        throw new Error(`Cohere embedding failed: ${errorText}`);
       }
-    );
 
-    if (searchError) {
-      throw new Error(`Supabase search failed: ${searchError.message}`);
+      const cohereData = await cohereRes.json();
+      const queryEmbedding = cohereData.embeddings.float
+        ? cohereData.embeddings.float[0]
+        : cohereData.embeddings[0];
+
+      // 6. RAG Search (Supabase Hybrid Match)
+      const { data: searchResults, error: searchError } =
+        await supabaseAdmin.rpc("match_documents_hybrid", {
+          query_embedding: queryEmbedding,
+          query_text: fullContextQuery,
+          match_count: 3,
+          p_user_id: userId,
+        });
+
+      if (searchError) {
+        throw new Error(`Supabase search failed: ${searchError.message}`);
+      }
+
+      textbookContext =
+        searchResults && searchResults.length > 0
+          ? searchResults
+              .map((row: SearchResultRow) => row.content)
+              .join("\n\n---\n\n")
+          : "No specific textbook context found.";
     }
 
-    // 7. STEP D: The Prediction (Gemini 2.5 Flash)
-    // Combine the retrieved chunks into a single textbook context block
-    const textbookContext =
-      searchResults && searchResults.length > 0
-        ? searchResults
-            .map((row: SearchResultRow) => row.content)
-            .join("\n\n---\n\n")
-        : "No specific textbook context found.";
+    // 7. Prediction via Groq (llama-3.1-8b-instant)
+    const chatCompletion = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      temperature: 0.2, // Low temp for deterministic accuracy
+      max_completion_tokens: 90, // Hard limit to ensure fast 1-4 word responses
+      messages: [
+        {
+          role: "system",
+          content: `You are an intelligent whiteboard autocomplete AI.
+          
+          TEXTBOOK CONTEXT:
+          ${textbookContext}
+          
+        ASK:
+          Predict the rest of the current line, sentence, or code block the user is writing.
 
-    const completionResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `You are an intelligent whiteboard autocomplete AI.
-      
-      TEXTBOOK CONTEXT:
-      ${textbookContext}
-      
-      USER'S CURRENT WRITING (Memory + Current Stroke):
-      "${fullContextQuery}"
-      
-      TASK:
-      Predict the next 1 to 4 words the user is going to write based on the context.
-      Do NOT repeat the words the user has already written. Only output the continuation.
-      If the context doesn't strongly suggest a logical completion, return the exact word "NONE".
-      Output ONLY the predicted words, nothing else.`,
+          STRICT RULES & EDGE CASES:
+          1. COMPLETE THE STRUCTURE: Do not stop early. If the context contains an math formula, array, matrix, or code block (e.g., '{ {1,4,9}... }') and the user is writing a variable assignment like "nums = ", you MUST output the ENTIRE array or value including the closing brackets and semicolons.
+          2. EXACT CODE/MATH: You must output the exact mathematical symbols, brackets, and numbers from the context. Do NOT output English descriptions like "the array".
+          3. MATRICES & FORMATTING: Preserve the exact spaces, newlines, and layout of matrices if the user is drawing one. 
+          4. PARTIAL WORDS: If the user's last input is incomplete, your prediction MUST seamlessly complete it first.
+          5. NO REPETITION: Do NOT repeat the words or variables the user has already written.
+          6. NO CHATTER: Output ONLY the predicted continuation, nothing else. No markdown, no quotes.
+          
+          If the context doesn't strongly suggest a logical completion, return the exact word "NONE".`,
+        },
+        {
+          role: "user",
+          content: `USER'S CURRENT WRITING: "${fullContextQuery}"`,
+        },
+      ],
+      stream: false,
     });
 
-    let prediction: string | null = completionResponse.text?.trim() || "NONE";
+    let prediction: string | null =
+      chatCompletion.choices[0]?.message?.content?.trim() || "NONE";
 
-    // Clean up the prediction (remove surrounding quotes if the LLM got overzealous)
+    // Clean formatting anomalies
     prediction = prediction.replace(/^["']|["']$/g, "").trim();
 
     if (prediction === "NONE" || prediction === "") {
-      prediction = null; // Look ma, no 'as any'!
+      prediction = null;
     }
 
-    // 8. Return the goods to the frontend!
+    // 8. Return results to frontend
     return NextResponse.json({
       predictedText: prediction,
       ocrText: ocrText,
+      ragContext: textbookContext, // OPTIMIZATION: Send context back to frontend to be cached!
     });
   } catch (error) {
     console.error("Autocomplete API Error:", error);
