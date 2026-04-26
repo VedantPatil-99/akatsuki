@@ -90,7 +90,7 @@ export function CanvasEvents({
           activeShapeIds.current = activeShapeIds.current.filter(
             (id) => !newShapeIds.includes(id)
           );
-        }, 1100);
+        }, 500);
       }
     });
 

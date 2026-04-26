@@ -49,6 +49,10 @@ export function useHandwritingCapture(
   const opts = useMemo(() => ({ ...DEFAULT_OPTIONS, ...options }), [options]);
   const contextMemory = useRef<MemoryChunk[]>([]);
 
+  //In-memory cache variables for RAG Context
+  const ragContextCache = useRef<string | null>(null);
+  const strokeCount = useRef<number>(0);
+
   const getMemoryContext = useCallback(() => {
     return contextMemory.current.map((m) => m.text).join(" ");
   }, []);
@@ -106,13 +110,19 @@ export function useHandwritingCapture(
           const memoryContext = getMemoryContext();
           console.log("🧠 Sending to AI. Memory context:", memoryContext);
 
-          // ==========================================
-          // 🚀 THE FINAL RAG API CONNECTION
-          // ==========================================
           const formData = new FormData();
           formData.append("file", blob);
           formData.append("memory", memoryContext);
           formData.append("userId", opts.userId);
+
+          // Only fetch fresh DB context every 3 strokes to save 1+ seconds
+          strokeCount.current += 1;
+          const shouldRefreshContext = strokeCount.current % 3 === 0;
+
+          if (!shouldRefreshContext && ragContextCache.current) {
+            formData.append("cachedContext", ragContextCache.current);
+            console.log("⚡ Using cached RAG context to speed up prediction!");
+          }
 
           const res = await fetch("/api/ai/autocomplete", {
             method: "POST",
@@ -125,6 +135,11 @@ export function useHandwritingCapture(
 
           const data = await res.json();
           console.log("🤖 AI Response:", data);
+
+          // Save the context returned from the server into our browser cache
+          if (data.ragContext) {
+            ragContextCache.current = data.ragContext;
+          }
 
           // Fail-Fast: Ignore accidental scribbles or empty reads
           if (!data.ocrText || data.ocrText.length < 3) return;
@@ -148,7 +163,7 @@ export function useHandwritingCapture(
       },
       [editor, opts, getMemoryContext, addMemoryChunk]
     ),
-    1000
+    600
   );
 
   return {
