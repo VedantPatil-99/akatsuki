@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { QrCodeIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { DownloadCloud, QrCode, WifiOff } from "lucide-react";
+import { BadgeCheckIcon, Check, DownloadCloud, WifiOff } from "lucide-react";
 import { DataConnection, Peer } from "peerjs";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -75,7 +76,6 @@ export function QuickShareButton() {
   return (
     <>
       <style jsx global>{`
-        /* Target the close button specifically in this dialog */
         .akatsuki-share-dialog button:has(svg.lucide-x) {
           top: 1.5rem !important;
           right: 1.5rem !important;
@@ -83,7 +83,7 @@ export function QuickShareButton() {
           height: 28px !important;
           color: white !important;
           background: transparent !important;
-          border: 1px solid transparent !important; /* Invisible until hover */
+          border: 1px solid transparent !important;
           border-radius: 9999px !important;
           transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
           opacity: 0.8;
@@ -92,14 +92,12 @@ export function QuickShareButton() {
           justify-content: center !important;
         }
 
-        /* The cute smaller cross icon scale */
         .akatsuki-share-dialog button:has(svg.lucide-x) svg {
           width: 14px !important;
           height: 14px !important;
-          stroke-width: 3px !important; /* Makes it look bolder/premium */
+          stroke-width: 3px !important;
         }
 
-        /* Professional Hover: Inward fading glow effect */
         .akatsuki-share-dialog button:has(svg.lucide-x):hover {
           opacity: 1;
           border-color: rgba(59, 130, 246, 0.4) !important;
@@ -107,7 +105,50 @@ export function QuickShareButton() {
           box-shadow:
             inset 0 0 12px rgba(59, 130, 246, 0.6),
             0 0 15px rgba(59, 130, 246, 0.1) !important;
-          transform: rotate(90deg); /* Slight rotation for smart feel */
+          transform: rotate(90deg);
+        }
+
+        /* Green Radar Pulse: Expanding with internal gradient fill */
+        @keyframes radar-pulse {
+          0% {
+            transform: scale(0.8);
+            opacity: 0;
+            background: rgba(34, 197, 94, 0);
+          }
+          50% {
+            opacity: 0.6;
+            background: rgba(34, 197, 94, 0.15);
+          }
+          100% {
+            transform: scale(1.6);
+            opacity: 0;
+            background: rgba(34, 197, 94, 0);
+          }
+        }
+
+        .radar-effect {
+          position: absolute;
+          inset: 0;
+          border-radius: 9999px;
+          border: 1.5px solid #22c55e;
+          animation: radar-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          pointer-events: none;
+        }
+
+        /* Badge Cloud Rotation */
+        @keyframes badge-spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .badge-cloud-wrapper {
+          position: absolute;
+          inset: 0;
+          animation: badge-spin 4s linear infinite;
         }
       `}</style>
 
@@ -116,20 +157,40 @@ export function QuickShareButton() {
           if (open) setShowPopup(true);
         }}
       >
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            className={`pointer-events-auto h-9 w-9 rounded-full border p-0 shadow-sm transition-all duration-300 ${
-              isConnected
-                ? "border-blue-500 bg-blue-600/20 shadow-blue-500/20"
-                : "border-zinc-200/20 bg-white/10 backdrop-blur-sm"
-            }`}
-          >
-            <QrCode
-              className={`h-4 w-4 ${isConnected ? "text-blue-400" : "text-zinc-600 dark:text-zinc-400"}`}
-            />
-          </Button>
-        </DialogTrigger>
+        <div className="relative inline-block">
+          {/* Green Radar Layer */}
+          {isConnected && <div className="radar-effect" />}
+
+          {/* Connected Badge Layer */}
+          {isConnected && (
+            <div className="absolute -top-1.5 -right-1.5 z-20 flex h-4 w-4 items-center justify-center">
+              <div className="badge-cloud-wrapper">
+                {/* This rotates the "cloud" outer part of the BadgeCheckIcon */}
+                <BadgeCheckIcon
+                  className="h-4 w-4 fill-green-500 text-green-500"
+                  strokeWidth={0}
+                />
+              </div>
+              {/* This is the stable small tick mark in the center */}
+              <Check className="relative z-30 h-2 w-2 stroke-[4px] text-white" />
+            </div>
+          )}
+
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              className={`pointer-events-auto relative z-10 h-9 w-9 rounded-full border p-0 shadow-sm transition-all duration-300 ${
+                isConnected
+                  ? "border-blue-500 bg-blue-600/20 shadow-blue-500/20"
+                  : "border-zinc-200/20 bg-white/10 backdrop-blur-sm"
+              }`}
+            >
+              <QrCodeIcon
+                className={`h-4.5 w-4.5 ${isConnected ? "text-blue-400" : "text-neutral-800 dark:text-neutral-50"}`}
+              />
+            </Button>
+          </DialogTrigger>
+        </div>
 
         <DialogContent className="akatsuki-share-dialog overflow-hidden rounded-[2.5rem] border-blue-500/30 bg-black text-white shadow-[0_0_50px_rgba(59,130,246,0.15)] sm:max-w-90">
           <DialogHeader className="pt-4">
