@@ -58,9 +58,11 @@ export const POST = async (req: NextRequest) => {
       .createSignedUrl(storageData.path, 3600);
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const extractorUrl =
+      process.env.EXTRACTOR_SERVICE_URL || "http://127.0.0.1:8000/api/extract";
 
-    // 3. Publish the heavy background job to QStash
-    await qstash.publishJSON({
+    // 3a. Publish the heavy text processing job (LlamaParse)
+    const parseJob = qstash.publishJSON({
       url: `${appUrl}/api/process`,
       body: {
         documentId: docRecord.id,
@@ -68,9 +70,22 @@ export const POST = async (req: NextRequest) => {
         fileUrl: signedUrlData?.signedUrl,
         isPremium,
       },
-      // Optional: Add a 1-second delay to ensure DB transaction finishes
       delay: "1s",
     });
+
+    // 3b. Publish the parallel asset extraction job (Python Microservice)
+    const extractJob = qstash.publishJSON({
+      url: extractorUrl,
+      body: {
+        documentId: docRecord.id,
+        userId,
+        fileUrl: signedUrlData?.signedUrl,
+        isPremium,
+      },
+      delay: "1s",
+    });
+
+    await Promise.all([parseJob, extractJob]);
 
     // 4. Return instantly to the frontend!
     return NextResponse.json({ documentId: docRecord.id }, { status: 200 });
