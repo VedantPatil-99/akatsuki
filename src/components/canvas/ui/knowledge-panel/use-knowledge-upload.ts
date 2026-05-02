@@ -14,7 +14,7 @@ export const useKnowledgeUpload = (userId: string) => {
   const [isPremium, setIsPremium] = useState(false);
   const [pageRange, setPageRange] = useState("");
   const [status, setStatus] = useState<ProcessingStatus>("idle");
-  const [documentId, setDocumentId] = useState<string | null>(null);
+  const [documentIds, setDocumentIds] = useState<string[]>([]);
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
@@ -25,7 +25,7 @@ export const useKnowledgeUpload = (userId: string) => {
     setFile(null);
     setPageRange("");
     setStatus("idle");
-    setDocumentId(null);
+    setDocumentIds([]);
   };
 
   const handleUpload = async () => {
@@ -50,7 +50,7 @@ export const useKnowledgeUpload = (userId: string) => {
       if (!res.ok) throw new Error("Upload failed");
 
       const data = await res.json();
-      setDocumentId(data.documentId);
+      setDocumentIds((prev) => [...prev, data.documentId]);
       setStatus("processing");
     } catch (error: unknown) {
       console.error("Upload error:", error);
@@ -75,7 +75,7 @@ export const useKnowledgeUpload = (userId: string) => {
   // };
 
   useEffect(() => {
-    if (status !== "processing" || !documentId) return;
+    if (status !== "processing" || !documentIds) return;
 
     const supabase = createClient();
 
@@ -83,7 +83,7 @@ export const useKnowledgeUpload = (userId: string) => {
       const { data, error } = await supabase
         .from("documents")
         .select("status")
-        .eq("id", documentId)
+        .eq("id", documentIds)
         .single();
 
       if (error) {
@@ -98,7 +98,7 @@ export const useKnowledgeUpload = (userId: string) => {
 
     const intervalId = setInterval(pollStatus, 5000);
     return () => clearInterval(intervalId);
-  }, [status, documentId]);
+  }, [status, documentIds]);
 
   return {
     file,
@@ -107,6 +107,7 @@ export const useKnowledgeUpload = (userId: string) => {
     pageRange,
     setPageRange,
     status,
+    documentIds,
     handleFileSelect,
     handleUpload,
     handleReset,
