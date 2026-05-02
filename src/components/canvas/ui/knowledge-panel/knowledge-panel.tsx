@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+import { KnowledgeAssets } from "./knowledge-assets";
 import { KnowledgeDropzone } from "./knowledge-dropzone";
 import { KnowledgeFooter } from "./knowledge-footer";
 import { KnowledgeOptions } from "./knowledge-options";
@@ -34,6 +35,7 @@ export const KnowledgePanel = ({ userId }: KnowledgePanelProps) => {
     pageRange,
     setPageRange,
     status,
+    documentIds,
     handleFileSelect,
     handleUpload,
     handleReset,
@@ -69,7 +71,7 @@ export const KnowledgePanel = ({ userId }: KnowledgePanelProps) => {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto">
+        <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-2">
           {isFormVisible ? (
             <>
               <KnowledgeDropzone file={file} onFileSelect={handleFileSelect} />
@@ -83,6 +85,7 @@ export const KnowledgePanel = ({ userId }: KnowledgePanelProps) => {
           ) : null}
 
           <KnowledgeStatus status={status} />
+          <KnowledgeAssets documentIds={documentIds} status={status} />
         </div>
 
         <KnowledgeFooter
