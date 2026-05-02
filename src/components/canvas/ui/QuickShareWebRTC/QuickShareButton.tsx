@@ -31,6 +31,16 @@ export function QuickShareButton() {
     return "";
   };
 
+  // Function for Localhost Testing
+
+  // const getBaseUrl = () => {
+  //   if (typeof window !== "undefined") {
+  //     // Hardcode it ONLY for this test to prove the connection works
+  //     return `http://192.168.1.XX:3000`; // Use your actual IP here (e.g., 192.168.1.5)
+  //   }
+  //   return "";
+  // };
+
   const shareUrl = peerId
     ? `${getBaseUrl()}/share/mobile?peerId=${peerId}`
     : "";
