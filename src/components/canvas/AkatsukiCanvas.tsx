@@ -58,8 +58,8 @@ export default function AkatsukiCanvas({
           email={email}
           avatarUrl={avatarUrl}
         />
+        <KnowledgePanel userId={userId} />
       </TldrawWrapper>
-      <KnowledgePanel userId={userId} />
     </div>
   );
 }
