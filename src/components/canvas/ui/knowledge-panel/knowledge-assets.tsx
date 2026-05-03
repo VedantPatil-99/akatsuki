@@ -13,20 +13,25 @@ import { ImagePreviewModal } from "./image-preview-modal";
 import { useDocumentAssets } from "./use-document-assets";
 
 interface KnowledgeAssetsProps {
+  userId: string;
   documentIds: string[];
   status: string;
 }
-
 export const KnowledgeAssets = ({
+  userId,
   documentIds,
   status,
 }: KnowledgeAssetsProps) => {
-  const { images, urls, isLoading } = useDocumentAssets(documentIds, status);
+  const { images, urls, isLoading } = useDocumentAssets(
+    userId,
+    documentIds,
+    status
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  if (status !== "ready" || (!images.length && !urls.length)) return null;
+  if (!images.length && !urls.length) return null;
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);

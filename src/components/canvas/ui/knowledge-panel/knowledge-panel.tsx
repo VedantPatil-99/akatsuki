@@ -85,7 +85,11 @@ export const KnowledgePanel = ({ userId }: KnowledgePanelProps) => {
           ) : null}
 
           <KnowledgeStatus status={status} />
-          <KnowledgeAssets documentIds={documentIds} status={status} />
+          <KnowledgeAssets
+            userId={userId}
+            documentIds={documentIds}
+            status={status}
+          />
         </div>
 
         <KnowledgeFooter
