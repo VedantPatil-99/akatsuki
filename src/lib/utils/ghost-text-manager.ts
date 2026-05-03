@@ -65,6 +65,9 @@ export class GhostTextManager {
     this.clearAllGhosts();
     const shapeId = createShapeId();
 
+    // Caps at 800px for reading comfort, or shrinks to fit mobile screens with 40px padding
+    const dynamicWidth = Math.min(800, window.innerWidth - 40);
+
     this.editor.createShape({
       id: shapeId,
       // @ts-expect-error - We intentionally bypass the default TLShape union to inject our custom shape
@@ -73,6 +76,7 @@ export class GhostTextManager {
       y: position.y,
       props: {
         text: text,
+        w: dynamicWidth, // <-- Inject the calculated width into the shape!
       },
     });
 
@@ -80,18 +84,19 @@ export class GhostTextManager {
     return shapeId;
   }
 
-  acceptPrediction(shapeId: TLShapeId) {
+  acceptPrediction(shapeId: TLShapeId, explicitText?: string) {
     const shape = this.editor.getShape(shapeId);
 
     if (!shape || (shape.type as string) !== "ai-ghost") return;
 
+    // Add 'w' to the destructured props
     const { x, y, props } = shape as unknown as {
       x: number;
       y: number;
-      props: { text: string };
+      props: { text: string; w: number }; // <-- Read the dynamic width
     };
 
-    const acceptedText = props.text;
+    const acceptedText = explicitText || props.text;
 
     this.editor.deleteShape(shapeId);
     this.ghostShapeIds.delete(shapeId);
@@ -105,6 +110,8 @@ export class GhostTextManager {
         color: "black",
         size: "m",
         font: "draw",
+        w: props.w,
+        autoSize: false,
       },
     });
   }
