@@ -51,48 +51,60 @@ export function CanvasEvents({
   useEffect(() => {
     if (!editor) return;
 
-    const cleanup = editor.store.listen((entry) => {
-      // PRIMARY GUARD: Do not process changes if AI is disabled
-      if (!useAIStore.getState().isAIAvailable) return;
+    const cleanup = editor.store.listen(
+      (entry) => {
+        // PRIMARY GUARD: Do not process changes if AI is disabled
+        if (!useAIStore.getState().isAIAvailable) return;
 
-      const removedIds = Object.keys(entry.changes.removed);
-      if (removedIds.length > 0) {
-        console.log("Shapes removed:", removedIds);
-      }
+        // SOURCE GUARD: Ignore programmatic or remote multiplayer changes
+        if (entry.source !== "user") return;
 
-      if (editor.getCurrentToolId() === "eraser") return;
+        // TOOL GUARD: Only trigger if the user is actively holding the pen/draw tool.
+        // This stops Undo/Redo from triggering the AI.
+        if (editor.getCurrentToolId() !== "draw") return;
 
-      const newShapeIds: TLShapeId[] = [];
+        const newShapeIds: TLShapeId[] = [];
 
-      Object.values(entry.changes.added).forEach((record) => {
-        if (record.typeName === "shape" && record.type === "draw") {
-          newShapeIds.push(record.id);
+        // Catch newly drawn lines
+        Object.values(entry.changes.added).forEach((record) => {
+          if (record.typeName === "shape" && record.type === "draw") {
+            newShapeIds.push(record.id);
+          }
+        });
+
+        // STROKE PROGRESSION GUARD: Differentiate a newly drawn line from a restored one
+        Object.values(entry.changes.updated).forEach(([before, after]) => {
+          if (
+            before.typeName === "shape" &&
+            before.type === "draw" &&
+            after.typeName === "shape" &&
+            after.type === "draw"
+          ) {
+            // Ensure the actual ink segments changed, ignoring coordinate drags or undo restores
+            if (before.props.segments !== after.props.segments) {
+              newShapeIds.push(after.id);
+            }
+          }
+        });
+
+        if (newShapeIds.length > 0) {
+          ghostManager.current?.cleanupGhostsOnNewInput();
+
+          activeShapeIds.current = [
+            ...new Set([...activeShapeIds.current, ...newShapeIds]),
+          ];
+
+          captureHandwriting(activeShapeIds.current);
+
+          setTimeout(() => {
+            activeShapeIds.current = activeShapeIds.current.filter(
+              (id) => !newShapeIds.includes(id)
+            );
+          }, 500);
         }
-      });
-
-      Object.values(entry.changes.updated).forEach((updateTuple) => {
-        const toRecord = updateTuple[1];
-        if (toRecord.typeName === "shape" && toRecord.type === "draw") {
-          newShapeIds.push(toRecord.id);
-        }
-      });
-
-      if (newShapeIds.length > 0) {
-        ghostManager.current?.cleanupGhostsOnNewInput();
-
-        activeShapeIds.current = [
-          ...new Set([...activeShapeIds.current, ...newShapeIds]),
-        ];
-
-        captureHandwriting(activeShapeIds.current);
-
-        setTimeout(() => {
-          activeShapeIds.current = activeShapeIds.current.filter(
-            (id) => !newShapeIds.includes(id)
-          );
-        }, 500);
-      }
-    });
+      },
+      { scope: "document", source: "user" }
+    );
 
     return () => cleanup();
   }, [editor, captureHandwriting]);

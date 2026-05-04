@@ -6,12 +6,8 @@ import { Groq } from "groq-sdk";
 
 // Run on the Edge for zero cold starts globally
 export const runtime = "edge";
-
-// Initialize Supabase Admin for secure backend DB queries without JWTs
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!
-);
+// Force dynamic execution so Next.js doesn't try to build this statically
+export const dynamic = "force-dynamic";
 
 interface SearchResultRow {
   id: string;
@@ -20,18 +16,38 @@ interface SearchResultRow {
   similarity: number;
 }
 
-// Initialize AI Clients
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }); // For Vision OCR
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY }); // For High-Speed Prediction
+const buildSystemPrompt = (context: string) => `
+You are a high-precision, spatial autocomplete engine running inside a digital whiteboard. 
+Your singular goal is to seamlessly complete the user's current thought based strictly on the provided context.
+
+<rules>
+1. LENGTH & BOUNDARIES: Complete the current sentence and STOP at the first logical boundary (e.g., a full stop '.'). ONLY generate 1-2 additional sentences if they are intrinsically linked (like a multi-part definition or theorem).
+2. SPATIAL FORMATTING (CRITICAL): You MUST preserve the exact raw formatting of the context. If the text contains matrices, columns, arrays, or code, you MUST output the exact spaces ( ), tabs, and newlines (\\n) required to align them properly. 
+3. CONTINUATION ONLY: Do NOT repeat the text the user has already written. Output ONLY the missing characters, words, or structural brackets.
+4. NO CHATTER & NO MARKDOWN: Output strictly the raw continuation text. Do not wrap your response in markdown code blocks (\`\`\`). Do not output conversational filler.
+5. FALLBACK: If the context does not contain a logical continuation, output exactly: NONE
+</rules>
+
+<context>
+${context}
+</context>
+`;
 
 export async function POST(req: NextRequest) {
+  // all client initializations INSIDE the handler so they only run at request time
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY!
+  );
+
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }); // For Vision OCR
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY }); // For High-Speed Prediction
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as Blob | null;
     const memory = formData.get("memory") as string | null;
     const userId = formData.get("userId") as string | null;
-
-    // OPTIMIZATION: Extract the cached context from the frontend
     const cachedContext = formData.get("cachedContext") as string | null;
 
     // 1. Validate required fields
@@ -65,10 +81,10 @@ export async function POST(req: NextRequest) {
 
     const fullContextQuery = `${memory || ""} ${ocrText}`.trim();
 
-    // OPTIMIZATION: Initialize textbook context with the cache
-    let textbookContext = cachedContext;
+    // Initialize textbook context with the cache (fallback to empty string to satisfy TS)
+    let textbookContext: string = cachedContext || "";
 
-    // OPTIMIZATION: Only hit Cohere and Supabase if the cache is empty!
+    // Only hit Cohere and Supabase if the cache is empty!
     if (!textbookContext) {
       // 5. Embed the Context Query (Cohere)
       const cohereRes = await fetch("https://api.cohere.com/v2/embed", {
@@ -101,7 +117,7 @@ export async function POST(req: NextRequest) {
         await supabaseAdmin.rpc("match_documents_hybrid", {
           query_embedding: queryEmbedding,
           query_text: fullContextQuery,
-          match_count: 3,
+          match_count: 5,
           p_user_id: userId,
         });
 
@@ -117,35 +133,19 @@ export async function POST(req: NextRequest) {
           : "No specific textbook context found.";
     }
 
-    // 7. Prediction via Groq (llama-3.1-8b-instant)
+    //  INFERENCE ENGINE
     const chatCompletion = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
-      temperature: 0.2, // Low temp for deterministic accuracy
-      max_completion_tokens: 90, // Hard limit to ensure fast 1-4 word responses
+      temperature: 0.1,
+      max_completion_tokens: 150,
       messages: [
         {
           role: "system",
-          content: `You are an intelligent whiteboard autocomplete AI.
-          
-          TEXTBOOK CONTEXT:
-          ${textbookContext}
-          
-        ASK:
-          Predict the rest of the current line, sentence, or code block the user is writing.
-
-          STRICT RULES & EDGE CASES:
-          1. COMPLETE THE STRUCTURE: Do not stop early. If the context contains an math formula, array, matrix, or code block (e.g., '{ {1,4,9}... }') and the user is writing a variable assignment like "nums = ", you MUST output the ENTIRE array or value including the closing brackets and semicolons.
-          2. EXACT CODE/MATH: You must output the exact mathematical symbols, brackets, and numbers from the context. Do NOT output English descriptions like "the array".
-          3. MATRICES & FORMATTING: Preserve the exact spaces, newlines, and layout of matrices if the user is drawing one. 
-          4. PARTIAL WORDS: If the user's last input is incomplete, your prediction MUST seamlessly complete it first.
-          5. NO REPETITION: Do NOT repeat the words or variables the user has already written.
-          6. NO CHATTER: Output ONLY the predicted continuation, nothing else. No markdown, no quotes.
-          
-          If the context doesn't strongly suggest a logical completion, return the exact word "NONE".`,
+          content: buildSystemPrompt(textbookContext),
         },
         {
           role: "user",
-          content: `USER'S CURRENT WRITING: "${fullContextQuery}"`,
+          content: `<user_input>${fullContextQuery}</user_input>`,
         },
       ],
       stream: false,
@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
     let prediction: string | null =
       chatCompletion.choices[0]?.message?.content?.trim() || "NONE";
 
-    // Clean formatting anomalies
+    // Clean formatting anomalies while preserving internal newlines
     prediction = prediction.replace(/^["']|["']$/g, "").trim();
 
     if (prediction === "NONE" || prediction === "") {
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       predictedText: prediction,
       ocrText: ocrText,
-      ragContext: textbookContext, // OPTIMIZATION: Send context back to frontend to be cached!
+      ragContext: textbookContext,
     });
   } catch (error) {
     console.error("Autocomplete API Error:", error);
