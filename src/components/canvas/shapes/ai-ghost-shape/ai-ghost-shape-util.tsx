@@ -3,8 +3,6 @@
 import { CheckIcon, XIcon } from "@phosphor-icons/react";
 import { HTMLContainer, Rectangle2d, ShapeUtil } from "tldraw";
 
-// <-- Swapped BaseBoxShapeUtil for ShapeUtil and Rectangle2d
-
 import { cn } from "@/lib/utils";
 
 import { AIGhostShape, aiGhostShapeProps } from "./types";
@@ -33,6 +31,7 @@ export class AIGhostShapeUtil extends ShapeUtil<AIGhostShape> {
   // Hide the default selection border so it looks like pure UI
   override hideSelectionBoundsBg = () => true;
   override hideSelectionBoundsFg = () => true;
+
   override component(shape: AIGhostShape) {
     const handleAccept = (e: React.PointerEvent) => {
       e.stopPropagation();
@@ -57,17 +56,20 @@ export class AIGhostShapeUtil extends ShapeUtil<AIGhostShape> {
         id={shape.id}
         style={{ overflow: "visible", pointerEvents: "none" }}
       >
-        <div className="relative flex items-center gap-2">
+        <div className="relative flex items-start gap-2">
           <div
+            // dynamic max-width
+            style={{ maxWidth: shape.props.w }}
             className={cn(
-              "text-muted-foreground rounded-md border border-dashed px-2 py-1 text-xl font-medium whitespace-nowrap backdrop-blur-sm transition-all",
+              "text-muted-foreground rounded-md border border-dashed px-2 py-1 text-xl font-medium wrap-break-word whitespace-pre-wrap backdrop-blur-sm transition-all",
               "border-indigo-500/50 bg-indigo-500/5 dark:border-indigo-400/50 dark:bg-indigo-500/10"
             )}
           >
             {shape.props.text}
           </div>
 
-          <div className="pointer-events-auto flex gap-1">
+          {/* shrink-0 so flexbox doesn't squish the buttons */}
+          <div className="pointer-events-auto flex shrink-0 gap-1">
             <button
               onPointerDown={handleAccept}
               aria-label="Accept AI Suggestion"
