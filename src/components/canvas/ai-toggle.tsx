@@ -2,7 +2,12 @@
 
 import { useId } from "react";
 
-import { Paragraph, Power, Sparkle, TextT } from "@phosphor-icons/react";
+import {
+  ParagraphIcon,
+  PowerIcon,
+  SparkleIcon,
+  TextTIcon,
+} from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +40,7 @@ export const AIToggle = () => {
               : "border-secondary-foreground/50 bg-secondary text-neutral-800 hover:bg-neutral-200 dark:bg-neutral-900 dark:text-neutral-50 dark:hover:bg-neutral-800"
           )}
         >
-          <Sparkle
+          <SparkleIcon
             className={cn("size-4.5", isAIAvailable && "animate-pulse")}
             weight={isAIAvailable ? "fill" : "regular"}
           />
@@ -64,7 +69,10 @@ export const AIToggle = () => {
               className="order-1 size-4 after:absolute after:inset-0"
             />
             <div className="flex grow items-center gap-3">
-              <Power className="text-muted-foreground size-5" weight="bold" />
+              <PowerIcon
+                className="text-muted-foreground size-5"
+                weight="bold"
+              />
               <div className="grid gap-0.5">
                 <Label
                   htmlFor={`${id}-off`}
@@ -87,7 +95,7 @@ export const AIToggle = () => {
               className="order-1 size-4 border-indigo-600 text-indigo-600 after:absolute after:inset-0"
             />
             <div className="flex grow items-center gap-3">
-              <TextT className="size-5 text-indigo-500" weight="bold" />
+              <TextTIcon className="size-5 text-indigo-500" weight="bold" />
               <div className="grid gap-0.5">
                 <Label
                   htmlFor={`${id}-word`}
@@ -110,7 +118,7 @@ export const AIToggle = () => {
               className="order-1 size-4 border-indigo-600 text-indigo-600 after:absolute after:inset-0"
             />
             <div className="flex grow items-center gap-3">
-              <Paragraph className="size-5 text-indigo-500" weight="bold" />
+              <ParagraphIcon className="size-5 text-indigo-500" weight="bold" />
               <div className="grid gap-0.5">
                 <Label
                   htmlFor={`${id}-paragraph`}
