@@ -5,13 +5,20 @@ import { z } from "zod";
 // ==========================================
 
 export const pageConceptSchema = z.object({
-  concept_id: z
-    .string()
-    .describe(
-      "A unique identifier for the concept (e.g., 'concept-osi-layers')"
-    ),
+  concept_id: z.string().describe("A unique identifier for the concept"),
   title: z.string(),
   definition: z.string(),
+  // NEW: Let the AI generate specific examples for the concept
+  example: z
+    .object({
+      type: z.enum(["text", "code", "math"]),
+      content: z.string(),
+      language: z
+        .string()
+        .optional()
+        .describe("For code blocks, e.g., 'javascript' or 'python'"),
+    })
+    .optional(),
   complexity_level: z.enum(["foundational", "intermediate", "advanced"]),
   requires_visual: z.boolean(),
   margin_mnemonic: z
@@ -82,23 +89,9 @@ export const visualElementSchema = z.object({
     connector_target: z
       .string()
       .nullable()
+      .catch("")
       .describe("Target ID if drawing a line to another element"),
   }),
-});
-
-export const codeBlockDirectiveSchema = z.object({
-  code_block_id: z.string(),
-  prism_language: z.string(),
-  highlight_lines: z.array(z.number()),
-  connector_annotations: z
-    .array(
-      z.object({
-        line_number: z.number(),
-        explanation_anchor: z.string(),
-        annotation_text: z.string(),
-      })
-    )
-    .optional(),
 });
 
 export const diagramRequirementSchema = z.object({
@@ -107,15 +100,17 @@ export const diagramRequirementSchema = z.object({
   type: z.enum(["flowchart", "hierarchy", "comparison", "state_machine"]),
   position: z.enum(["gutter_left", "gutter_right", "inline"]),
   rough_style: z.enum(["rough", "sketchy", "hand_drawn"]),
+  // NEW: Let the AI write the actual diagram code
+  mermaid_syntax: z
+    .string()
+    .describe("Valid Mermaid.js syntax for this diagram"),
 });
 
 export const agentBResponseSchema = z.object({
   page_layout: pageLayoutSchema,
   visual_elements: z.array(visualElementSchema),
-  code_block_directives: z.array(codeBlockDirectiveSchema).optional(),
   diagram_requirements: z.array(diagramRequirementSchema).optional(),
 });
 
-// Type exports for use in components and API routes
 export type AgentAResponse = z.infer<typeof agentAResponseSchema>;
 export type AgentBResponse = z.infer<typeof agentBResponseSchema>;
