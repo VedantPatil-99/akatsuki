@@ -57,7 +57,7 @@ export const POST = async (req: NextRequest) => {
       .from("documents")
       .createSignedUrl(storageData.path, 3600);
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const extractorUrl =
       process.env.EXTRACTOR_SERVICE_URL || "http://127.0.0.1:8000/api/extract";
 

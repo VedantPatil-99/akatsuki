@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 
 import { KnowledgeAssets } from "./knowledge-assets";
+import { KnowledgeDocuments } from "./knowledge-documents";
 import { KnowledgeDropzone } from "./knowledge-dropzone";
 import { KnowledgeFooter } from "./knowledge-footer";
 import { KnowledgeOptions } from "./knowledge-options";
@@ -85,6 +86,9 @@ export const KnowledgePanel = ({ userId }: KnowledgePanelProps) => {
           ) : null}
 
           <KnowledgeStatus status={status} />
+
+          <KnowledgeDocuments userId={userId} />
+
           <KnowledgeAssets
             userId={userId}
             documentIds={documentIds}
