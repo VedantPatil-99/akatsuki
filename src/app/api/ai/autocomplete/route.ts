@@ -17,30 +17,26 @@ interface SearchResultRow {
 }
 
 // --- PROMPT 1: OLD WORD-BY-WORD BEHAVIOR ---
-const buildWordPrompt = (
-  context: string
-) => `You are an intelligent whiteboard autocomplete AI.
-          
-TEXTBOOK CONTEXT:
+const buildWordPrompt = (context: string) => `
+You are a highly constrained, ultra-fast whiteboard autocomplete AI.
+Your singular goal is to predict the immediate next few words the user is about to write.
+
+<rules>
+1. EXTREME BREVITY (CRITICAL): You MUST output ONLY the next 1 to 4 words. Do not finish the entire sentence unless it naturally ends within 4 words. 
+2. NO CHATTER: Output strictly the raw continuation text. No markdown, no conversational filler.
+3. CONTINUATION ONLY: Do NOT repeat the text the user has already written.
+4. SPATIAL FORMATTING: If completing a matrix or array, only output the immediate next elements.
+5. FALLBACK: If the context doesn't strongly suggest a logical completion, return the exact word "NONE".
+</rules>
+
+<context>
 ${context}
-
-ASK:
-Predict the rest of the current line, sentence, or code block the user is writing.
-
-STRICT RULES & EDGE CASES:
-1. COMPLETE THE STRUCTURE: Do not stop early. If the context contains an math formula, array, matrix, or code block (e.g., '{ {1,4,9}... }') and the user is writing a variable assignment like "nums = ", you MUST output the ENTIRE array or value including the closing brackets and semicolons.
-2. EXACT CODE/MATH: You must output the exact mathematical symbols, brackets, and numbers from the context. Do NOT output English descriptions like "the array".
-3. MATRICES & FORMATTING: Preserve the exact spaces, newlines, and layout of matrices if the user is drawing one. 
-4. PARTIAL WORDS: If the user's last input is incomplete, your prediction MUST seamlessly complete it first.
-5. NO REPETITION: Do NOT repeat the words or variables the user has already written.
-6. NO CHATTER: Output ONLY the predicted continuation, nothing else. No markdown, no quotes.
-
-If the context doesn't strongly suggest a logical completion, return the exact word "NONE".`;
+</context>
+`;
 
 // --- PROMPT 2: NEW PARAGRAPH/SENTENCE BEHAVIOR ---
-const buildParagraphPrompt = (
-  context: string
-) => `You are a high-precision, spatial autocomplete engine running inside a digital whiteboard. 
+const buildParagraphPrompt = (context: string) => `
+You are a high-precision, spatial autocomplete engine running inside a digital whiteboard. 
 Your singular goal is to seamlessly complete the user's current thought based strictly on the provided context.
 
 <rules>
@@ -55,7 +51,8 @@ Your singular goal is to seamlessly complete the user's current thought based st
 
 <context>
 ${context}
-</context>`;
+</context>
+`;
 
 export async function POST(req: NextRequest) {
   // all client initializations INSIDE the handler so they only run at request time
@@ -163,7 +160,7 @@ export async function POST(req: NextRequest) {
       aiMode === "word"
         ? buildWordPrompt(textbookContext)
         : buildParagraphPrompt(textbookContext);
-    const maxTokens = aiMode === "word" ? 90 : 150;
+    const maxTokens = aiMode === "word" ? 20 : 150;
     const temperature = aiMode === "word" ? 0.2 : 0.1;
 
     const chatCompletion = await groq.chat.completions.create({
@@ -179,7 +176,7 @@ export async function POST(req: NextRequest) {
           role: "user",
           content:
             aiMode === "word"
-              ? `USER'S CURRENT WRITING: "${fullContextQuery}"`
+              ? `<user_input>${fullContextQuery}</user_input>`
               : `<user_input>${fullContextQuery}</user_input>`,
         },
       ],
