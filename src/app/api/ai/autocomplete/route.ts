@@ -16,16 +16,37 @@ interface SearchResultRow {
   similarity: number;
 }
 
-const buildSystemPrompt = (context: string) => `
+// --- PROMPT 1: OLD WORD-BY-WORD BEHAVIOR ---
+const buildWordPrompt = (context: string) => `
+You are a highly constrained, ultra-fast whiteboard autocomplete AI.
+Your singular goal is to predict the immediate next few words the user is about to write.
+
+<rules>
+1. EXTREME BREVITY (CRITICAL): You MUST output ONLY the next 1 to 4 words. Do not finish the entire sentence unless it naturally ends within 4 words. 
+2. NO CHATTER: Output strictly the raw continuation text. No markdown, no conversational filler.
+3. CONTINUATION ONLY: Do NOT repeat the text the user has already written.
+4. SPATIAL FORMATTING: If completing a matrix or array, only output the immediate next elements.
+5. FALLBACK: If the context doesn't strongly suggest a logical completion, return the exact word "NONE".
+</rules>
+
+<context>
+${context}
+</context>
+`;
+
+// --- PROMPT 2: NEW PARAGRAPH/SENTENCE BEHAVIOR ---
+const buildParagraphPrompt = (context: string) => `
 You are a high-precision, spatial autocomplete engine running inside a digital whiteboard. 
 Your singular goal is to seamlessly complete the user's current thought based strictly on the provided context.
 
 <rules>
 1. LENGTH & BOUNDARIES: Complete the current sentence and STOP at the first logical boundary (e.g., a full stop '.'). ONLY generate 1-2 additional sentences if they are intrinsically linked (like a multi-part definition or theorem).
 2. SPATIAL FORMATTING (CRITICAL): You MUST preserve the exact raw formatting of the context. If the text contains matrices, columns, arrays, or code, you MUST output the exact spaces ( ), tabs, and newlines (\\n) required to align them properly. 
-3. CONTINUATION ONLY: Do NOT repeat the text the user has already written. Output ONLY the missing characters, words, or structural brackets.
+3. CONTINUATION ONLY (MUST FOLLOW): Do NOT repeat the text the user has already written. Output ONLY the missing characters, words, or structural brackets.
 4. NO CHATTER & NO MARKDOWN: Output strictly the raw continuation text. Do not wrap your response in markdown code blocks (\`\`\`). Do not output conversational filler.
 5. FALLBACK: If the context does not contain a logical continuation, output exactly: NONE
+6. Sometimes you may get discontinued, broken context. Then only consider the latest previous word (like n-grams) in that context.
+7. AVOID REPETITION: Your completion output must not contain the users written text (i.e. context you got). Never ever repeat that.
 </rules>
 
 <context>
@@ -49,6 +70,7 @@ export async function POST(req: NextRequest) {
     const memory = formData.get("memory") as string | null;
     const userId = formData.get("userId") as string | null;
     const cachedContext = formData.get("cachedContext") as string | null;
+    const aiMode = (formData.get("aiMode") as string) || "paragraph";
 
     // 1. Validate required fields
     if (!file || !userId) {
@@ -133,19 +155,29 @@ export async function POST(req: NextRequest) {
           : "No specific textbook context found.";
     }
 
-    //  INFERENCE ENGINE
+    // Determine prompt, tokens, and temp based on the user's selected UI mode
+    const systemPromptContent =
+      aiMode === "word"
+        ? buildWordPrompt(textbookContext)
+        : buildParagraphPrompt(textbookContext);
+    const maxTokens = aiMode === "word" ? 20 : 150;
+    const temperature = aiMode === "word" ? 0.2 : 0.1;
+
     const chatCompletion = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
-      temperature: 0.1,
-      max_completion_tokens: 150,
+      temperature: temperature,
+      max_completion_tokens: maxTokens,
       messages: [
         {
           role: "system",
-          content: buildSystemPrompt(textbookContext),
+          content: systemPromptContent,
         },
         {
           role: "user",
-          content: `<user_input>${fullContextQuery}</user_input>`,
+          content:
+            aiMode === "word"
+              ? `<user_input>${fullContextQuery}</user_input>`
+              : `<user_input>${fullContextQuery}</user_input>`,
         },
       ],
       stream: false,
