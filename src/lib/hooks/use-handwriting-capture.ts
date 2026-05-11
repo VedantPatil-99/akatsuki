@@ -10,6 +10,7 @@ import {
   expandBounds,
   findShapesInBounds,
 } from "../spatial-utils";
+import { useAIStore } from "../stores/use-ai-store";
 import { MemoryChunk } from "../types/handwriting";
 
 // Extract exact type from Tldraw to satisfy strict TypeScript
@@ -78,6 +79,7 @@ export function useHandwritingCapture(
         if (shapeIds.length === 0) return;
 
         try {
+          const aiMode = useAIStore.getState().aiMode;
           // Dynamic padding for zoom levels
           const camera = editor.getCamera();
           const contextPadding = opts.contextPadding! / (camera.z as number);
@@ -102,10 +104,10 @@ export function useHandwritingCapture(
           );
 
           // 6. Preview if requested
-          if (opts.previewInNewWindow) {
-            const imageUrl = URL.createObjectURL(blob);
-            window.open(imageUrl, "_blank");
-          }
+          // if (opts.previewInNewWindow) {
+          //   const imageUrl = URL.createObjectURL(blob);
+          //   window.open(imageUrl, "_blank");
+          // }
 
           const memoryContext = getMemoryContext();
           console.log("🧠 Sending to AI. Memory context:", memoryContext);
@@ -114,6 +116,8 @@ export function useHandwritingCapture(
           formData.append("file", blob);
           formData.append("memory", memoryContext);
           formData.append("userId", opts.userId);
+          formData.append("aiMode", aiMode);
+          console.log(aiMode);
 
           // Only fetch fresh DB context every 3 strokes to save 1+ seconds
           strokeCount.current += 1;
