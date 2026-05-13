@@ -105,14 +105,36 @@ export function findShapesInBounds(
 export const calculateGhostTextPosition = (
   editor: Editor,
   shapeIds: TLShapeId[]
-): { x: number; y: number } => {
+): { x: number; y: number; w: number } => {
   const bounds = calculateShapeBounds(editor, shapeIds);
+  const viewport = editor.getViewportPageBounds();
 
-  // 20px padding to the right of the last stroke
-  const x = bounds.maxX + 20;
+  // 1. Base Assumption: Spawn 16px to the right of the last stroke
+  let x = bounds.maxX + 16;
 
-  // Align to the vertical center of the drawn word
-  const y = bounds.minY + (bounds.maxY - bounds.minY) / 2;
+  // FIX 1: Align the TOP of the ghost box with the TOP of the handwritten text.
+  // HTML elements anchor top-left, so this keeps them perfectly aligned horizontally.
+  let y = bounds.minY;
 
-  return { x, y };
+  // Calculate remaining horizontal space on the screen
+  const spaceOnRight = viewport.maxX - x - 40;
+  let w = Math.min(800, spaceOnRight);
+
+  // 3. SMART WRAP: If remaining space is too tiny (< 300px), drop to the next line!
+  if (spaceOnRight < 300) {
+    // FIX: Snap directly to the far-left of the VISIBLE SCREEN (with 40px padding),
+    // completely ignoring where the handwritten sentence started.
+    x = viewport.minX + 40;
+
+    // FIX 3: Snug the box tightly below the handwritten text line (only a 4px gap instead of 20px)
+    y = bounds.maxY + 4;
+
+    // Recalculate width for this full new line
+    w = Math.min(800, viewport.maxX - x - 40);
+  }
+
+  // Ensure width never gets impossibly squished
+  w = Math.max(250, w);
+
+  return { x, y, w };
 };
