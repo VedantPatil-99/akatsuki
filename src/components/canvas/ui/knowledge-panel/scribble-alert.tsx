@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { AlertCircle, Download, Sparkles, XIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -16,8 +18,22 @@ export function ScribbleAlert({
   documentId,
   documentName,
 }: ScribbleAlertProps) {
-  const { generateScribbles, status, progress, pdfUrl, error, reset } =
-    useScribbleGenerator();
+  const {
+    generateScribbles,
+    checkActiveJob,
+    cancelGeneration, // <-- Pulled in the new cancel function
+    status,
+    progress,
+    pdfUrl,
+    error,
+    reset,
+  } = useScribbleGenerator();
+
+  /// NEW: Check if a job is already running for this specific document when the panel opens!
+  useEffect(() => {
+    checkActiveJob(documentId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentId]);
 
   // If it hasn't started yet, we show a simple trigger button instead of the full alert
   if (status === "idle") {
@@ -100,6 +116,7 @@ export function ScribbleAlert({
             variant="ghost"
             size="sm"
             className="text-muted-foreground h-8"
+            // The hide button just dismisses the alert visually without cancelling the backend job
             onClick={reset}
           >
             {status === "ready" || status === "failed" ? "Dismiss" : "Hide"}
@@ -109,7 +126,8 @@ export function ScribbleAlert({
 
       <button
         className="text-muted-foreground hover:text-foreground size-5 cursor-pointer transition-colors"
-        onClick={reset}
+        // NEW: The cross button now actively cancels the generation in the database!
+        onClick={cancelGeneration}
       >
         <XIcon className="size-4" />
         <span className="sr-only">Close</span>
