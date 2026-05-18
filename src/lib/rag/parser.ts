@@ -2,7 +2,8 @@ import LlamaCloud from "@llamaindex/llama-cloud";
 
 export const parseDocumentToMarkdown = async (
   fileUrl: string,
-  isPremium: boolean
+  isPremium: boolean,
+  pageRange?: string | null
 ): Promise<string> => {
   if (!fileUrl) {
     throw new Error("File URL is required for parsing");
@@ -18,29 +19,45 @@ export const parseDocumentToMarkdown = async (
     throw new Error(`Failed to fetch file from URL: ${response.statusText}`);
   }
 
-  // 1. Extract the clean filename from the Supabase URL (ignoring the ?token=... query params)
+  // Extract the clean filename from the Supabase URL
   const urlObj = new URL(fileUrl);
   const cleanFileName = decodeURIComponent(
     urlObj.pathname.split("/").pop() || "document.pdf"
   );
 
-  // 2. Convert the response to a Blob
+  // Convert the response to a Blob
   const blob = await response.blob();
 
-  // 3. Wrap it in a native File object so LlamaCloud correctly reads the .pdf/.docx extension
+  // Wrap it in a native File object
   const file = new File([blob], cleanFileName, { type: blob.type });
 
-  // 4. Upload the explicitly named file to LlamaCloud
+  // Upload the explicitly named file to LlamaCloud
   const fileObj = await client.files.create({
     file: file,
     purpose: "parse",
   });
 
-  // 5. Trigger the parsing job
+  // Trigger the parsing job with V2 configuration blocks
   const parseResult = await client.parsing.parse({
     file_id: fileObj.id,
-    tier: isPremium ? "agentic_plus" : "cost_effective",
     version: "latest",
+    tier: isPremium ? "agentic_plus" : "cost_effective",
+
+    // Enable Cost Optimizer for Deep Scan (Premium)
+    // Agentic Plus automatically includes specialized chart parsing
+    ...(isPremium && {
+      processing_options: {
+        cost_optimizer: { enable: true },
+      },
+    }),
+
+    // Safely inject page ranges if provided by the user
+    ...(pageRange && {
+      page_ranges: {
+        target_pages: pageRange,
+      },
+    }),
+
     expand: ["markdown"],
   });
 
