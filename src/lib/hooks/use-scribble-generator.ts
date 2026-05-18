@@ -19,6 +19,41 @@ export function useScribbleGenerator() {
 
   const supabase = createClient();
 
+  // NEW: Checks the database to see if a job is already running for this document
+  const checkActiveJob = async (documentId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("scribble_jobs")
+        .select("id, status, pdf_url, error_message")
+        .eq("source_document_id", documentId)
+        // Get the most recent job
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error || !data) return;
+
+      // Re-attach to the running job if it isn't finished!
+      if (["pending", "processing", "rendering"].includes(data.status)) {
+        setJobId(data.id);
+        setStatus(data.status as ScribbleStatus);
+
+        // Restore approximate progress
+        if (data.status === "processing") setProgress(40);
+        if (data.status === "rendering") setProgress(75);
+      }
+      // Or show the finished PDF if it completed while the panel was closed
+      else if (data.status === "ready") {
+        setJobId(data.id);
+        setStatus("ready");
+        setPdfUrl(data.pdf_url);
+        setProgress(100);
+      }
+    } catch (err) {
+      console.error("Failed to check active jobs", err);
+    }
+  };
+
   const generateScribbles = async (documentId: string) => {
     try {
       setStatus("pending");
@@ -26,7 +61,6 @@ export function useScribbleGenerator() {
       setError(null);
       setPdfUrl(null);
 
-      // 1. Trigger the background job
       const res = await fetch("/api/scribble/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,7 +77,23 @@ export function useScribbleGenerator() {
     }
   };
 
-  // 2. Poll Supabase when we have an active Job ID
+  // NEW: Cancels the job in the database and resets the UI
+  const cancelGeneration = async () => {
+    if (!jobId) {
+      reset();
+      return;
+    }
+
+    // Mark as failed in DB so if the worker checks, it knows to abort
+    await supabase
+      .from("scribble_jobs")
+      .update({ status: "failed", error_message: "Cancelled by user" })
+      .eq("id", jobId);
+
+    reset();
+  };
+
+  // Poll Supabase when we have an active Job ID
   useEffect(() => {
     if (!jobId || status === "ready" || status === "failed") return;
 
@@ -59,7 +109,6 @@ export function useScribbleGenerator() {
         return;
       }
 
-      // Update local state based on DB status
       setStatus(data.status as ScribbleStatus);
 
       switch (data.status) {
@@ -75,12 +124,15 @@ export function useScribbleGenerator() {
           clearInterval(pollInterval);
           break;
         case "failed":
-          setError(data.error_message || "Generation failed");
+          // If it was cancelled by the user, we just quietly stop.
+          if (data.error_message !== "Cancelled by user") {
+            setError(data.error_message || "Generation failed");
+          }
           setProgress(0);
           clearInterval(pollInterval);
           break;
       }
-    }, 2500); // Poll every 2.5 seconds
+    }, 2500);
 
     return () => clearInterval(pollInterval);
   }, [jobId, status, supabase]);
@@ -93,5 +145,14 @@ export function useScribbleGenerator() {
     setJobId(null);
   };
 
-  return { generateScribbles, status, progress, pdfUrl, error, reset };
+  return {
+    generateScribbles,
+    checkActiveJob,
+    cancelGeneration,
+    status,
+    progress,
+    pdfUrl,
+    error,
+    reset,
+  };
 }

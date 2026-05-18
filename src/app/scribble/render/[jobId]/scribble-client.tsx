@@ -17,14 +17,20 @@ export function ScribbleClientRenderer({
   const [isRendered, setIsRendered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // 1. Initialize Mermaid with a hand-drawn looking theme if possible
-    mermaid.initialize({ startOnLoad: false, theme: "neutral" });
+  // Extract all questions and group them into chunks of 6 per page
+  const allQuestions = pages.flatMap(
+    (p) => p.semanticData.active_recall_questions
+  );
+  const questionsPerPage = 6;
+  const questionPages = [];
+  for (let i = 0; i < allQuestions.length; i += questionsPerPage) {
+    questionPages.push(allQuestions.slice(i, i + questionsPerPage));
+  }
 
-    // 2. Run Prism Syntax Highlighting
+  useEffect(() => {
+    mermaid.initialize({ startOnLoad: false });
     Prism.highlightAll();
 
-    // 3. Draw Rough.js Sketches
     if (containerRef.current) {
       const sketchContainers =
         containerRef.current.querySelectorAll(".sketch-container");
@@ -85,7 +91,6 @@ export function ScribbleClientRenderer({
       });
     }
 
-    // 4. Render Mermaid Diagrams and Signal Browserless
     const renderVisuals = async () => {
       try {
         await mermaid.run({ querySelector: ".mermaid" });
@@ -101,12 +106,22 @@ export function ScribbleClientRenderer({
 
   return (
     <div ref={containerRef} className="flex w-full flex-col items-center">
+      {/* 1. Render all standard note pages (Never the last page anymore) */}
       {pages.map((pageData, index) => (
         <ScribblePage
           key={`page-${pageData.pageNumber}-${index}`}
           data={pageData}
-          // Fix for the blank page! Tell the component if it's the last page.
-          isLastPage={index === pages.length - 1}
+          isLastPage={false}
+        />
+      ))}
+
+      {/* 2. Append the Active Recall pages at the very end */}
+      {questionPages.map((qChunk, index) => (
+        <ActiveRecallPage
+          key={`qa-page-${index}`}
+          questions={qChunk}
+          pageNumber={pages.length + index + 1}
+          isLastPage={index === questionPages.length - 1} // Actual last page check
         />
       ))}
 
@@ -131,7 +146,6 @@ function ScribblePage({
       style={{
         width: "210mm",
         height: "297mm",
-        // BUG FIX: Only page break if it's NOT the last page
         pageBreakAfter: isLastPage ? "auto" : "always",
       }}
     >
@@ -140,6 +154,7 @@ function ScribblePage({
         <span className="ml-auto">Page {data.pageNumber}</span>
       </header>
 
+      {/* Removed the footer constraint so main content flows to the bottom */}
       <div className="absolute top-12 bottom-0 left-0 flex w-full">
         {/* LEFT GUTTER */}
         <aside
@@ -158,9 +173,9 @@ function ScribblePage({
           )}
         </aside>
 
-        {/* MAIN CONTENT */}
+        {/* MAIN CONTENT (Padding bottom adjusted since footer is gone) */}
         <main
-          className="overflow-y-auto p-8 pb-32 font-sans"
+          className="overflow-y-auto p-8 pb-8 font-sans"
           style={{ width: `${layout.main_content_width}%` }}
         >
           {semanticData.page_concepts.map((concept) => (
@@ -172,7 +187,6 @@ function ScribblePage({
                 {concept.definition}
               </p>
 
-              {/* NEW: Render AI Generated Examples (Code or Text) */}
               {concept.example && (
                 <div className="mt-4">
                   <strong className="mb-1 block text-xs font-semibold text-gray-500 uppercase">
@@ -187,7 +201,6 @@ function ScribblePage({
                       </code>
                     </pre>
                   ) : (
-                    // FIX: Added whitespace-pre-wrap and font-mono so Math spacing is respected
                     <div className="rounded-md border border-gray-200 bg-gray-50 p-4 font-mono text-sm whitespace-pre-wrap text-gray-800">
                       {concept.example.content}
                     </div>
@@ -195,7 +208,6 @@ function ScribblePage({
                 </div>
               )}
 
-              {/* NEW: Render Inline Mermaid Diagrams for this specific concept */}
               {visualData.diagram_requirements
                 ?.filter(
                   (d) =>
@@ -250,26 +262,60 @@ function ScribblePage({
             ))}
         </aside>
       </div>
+    </article>
+  );
+}
 
-      <footer
-        className="absolute bottom-0 left-0 w-full bg-gray-900 p-6 text-white"
-        style={{ height: `${layout.footer_height}%` }}
-      >
-        <h3 className="font-geist mb-4 flex items-center gap-2 text-lg font-bold">
-          <span className="rounded bg-blue-500 px-2 py-1 text-xs">
-            Active Recall
-          </span>
-          Test Yourself
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
-          {semanticData.active_recall_questions.slice(0, 4).map((q, i) => (
-            <div key={q.question_id} className="text-sm">
-              <span className="mr-2 font-mono text-gray-400">{i + 1}.</span>
-              {q.question_text}
+// NEW COMPONENT: Active Recall Appendix Pages
+function ActiveRecallPage({
+  questions,
+  pageNumber,
+  isLastPage,
+}: {
+  questions: OrchestrationResult["semanticData"]["active_recall_questions"];
+  pageNumber: number;
+  isLastPage: boolean;
+}) {
+  return (
+    <article
+      className="relative mb-8 overflow-hidden bg-white shadow-xl print:mb-0 print:shadow-none"
+      style={{
+        width: "210mm",
+        height: "297mm",
+        pageBreakAfter: isLastPage ? "auto" : "always",
+      }}
+    >
+      <header className="absolute top-0 left-0 flex h-12 w-full items-center border-b-2 border-gray-200 px-8 font-mono text-sm text-gray-400">
+        <span>Akatsuki Scribble Notes - Active Recall Appendix</span>
+        <span className="ml-auto">Page {pageNumber}</span>
+      </header>
+
+      <main className="absolute top-12 bottom-0 left-0 w-full p-12">
+        <h1 className="font-geist mb-8 border-b-2 border-gray-200 pb-2 text-2xl font-bold text-gray-900">
+          Test Your Knowledge
+        </h1>
+        <div className="flex flex-col gap-8">
+          {questions.map((q, index) => (
+            <div
+              key={q.question_id}
+              className="rounded-lg border border-gray-200 bg-gray-50 p-6"
+            >
+              <h3 className="mb-2 text-lg font-semibold text-gray-900">
+                <span className="mr-2 text-blue-500">Q{index + 1}.</span>
+                {q.question_text}
+              </h3>
+              <div className="mt-3 pl-7">
+                <strong className="mb-1 block text-xs tracking-wider text-gray-400 uppercase">
+                  Answer Summary
+                </strong>
+                <p className="font-mono text-sm leading-relaxed whitespace-pre-wrap text-gray-700">
+                  {q.expected_answer_summary}
+                </p>
+              </div>
             </div>
           ))}
         </div>
-      </footer>
+      </main>
     </article>
   );
 }

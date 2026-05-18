@@ -73,6 +73,7 @@ async function executeAgentA(chunk: DocumentChunk): Promise<AgentAResponse> {
   const rawJson = JSON.parse(response.choices[0]?.message?.content || "{}");
   return agentAResponseSchema.parse(rawJson);
 }
+
 async function executeAgentB(
   chunk: DocumentChunk,
   agentAData: AgentAResponse
@@ -115,15 +116,22 @@ async function executeAgentB(
           ]
         }
         
-        CRITICAL RULES:
-        1. For Mermaid syntax, use ONLY standard flowchart syntax. Example: graph TD; A[Name] -->|Action| B[Result]; Do NOT use invalid arrows like -->|Text|>.
-        2. You MUST include at least 1 or 2 "doodle" elements placed on the "right" side to visually balance the page. Set their "icon_suggestion" to basic keywords like "table", "arrow", "math", or "circle".`,
+        CRITICAL RULES FOR MERMAID SYNTAX:
+        1. FRONTMATTER: You MUST prepend this exact YAML frontmatter to force a hand-drawn look:
+        ---
+        config:
+          look: handDrawn
+          theme: neutral
+        ---
+        2. STRICT ARROW SYNTAX: You MUST use standard arrows like '-->' or '-->|Label|'. YOU ARE STRICTLY FORBIDDEN from using '-->|Text|>' (never use a trailing chevron after text).
+        3. NO MATH OR LATEX IN DIAGRAMS: Mermaid nodes cannot parse LaTeX. You MUST use plain English text for node labels. Do NOT use backslashes '\\', curly braces '{}', or '\\begin{bmatrix}' inside Mermaid diagrams. Example: Use C[Transposed 3x2 Matrix] instead of C[\\begin{matrix}...].
+        4. BALANCE: Include at least 1 or 2 "doodle" elements on the "right" side with icon suggestions like "table", "arrow", "math", or "circle".`,
       },
       {
         role: "user",
         content: `Design the layout for Page ${chunk.pageNumber} based on the concepts. 
         Place text mnemonics on the left. You MUST place at least one Rough.js doodle on the right side.
-        Generate valid Mermaid.js syntax for complex concepts.\n\nConcepts to Map:\n${JSON.stringify(agentAData.page_concepts, null, 2)}`,
+        Generate valid, simple Mermaid.js syntax for complex concepts. NO LaTeX in diagrams.\n\nConcepts to Map:\n${JSON.stringify(agentAData.page_concepts, null, 2)}`,
       },
     ],
     temperature: 0.2,
