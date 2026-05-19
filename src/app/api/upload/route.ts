@@ -17,6 +17,9 @@ export const POST = async (req: NextRequest) => {
     const userId = formData.get("userId") as string;
     const isPremium = formData.get("isPremium") === "true";
 
+    // 0. Extract the pageRange from the frontend's FormData
+    const pageRange = formData.get("pageRange") as string | null;
+
     if (!file || !userId) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -57,7 +60,7 @@ export const POST = async (req: NextRequest) => {
       .from("documents")
       .createSignedUrl(storageData.path, 3600);
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const extractorUrl =
       process.env.EXTRACTOR_SERVICE_URL || "http://127.0.0.1:8000/api/extract";
 
@@ -69,6 +72,7 @@ export const POST = async (req: NextRequest) => {
         userId,
         fileUrl: signedUrlData?.signedUrl,
         isPremium,
+        pageRange,
       },
       delay: "1s",
     });
@@ -81,6 +85,7 @@ export const POST = async (req: NextRequest) => {
         userId,
         fileUrl: signedUrlData?.signedUrl,
         isPremium,
+        pageRange,
       },
       delay: "1s",
     });
