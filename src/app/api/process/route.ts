@@ -9,23 +9,28 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const processDocument = async (req: NextRequest) => {
   const body = await req.json();
-  const { documentId, userId, fileUrl, isPremium } = body;
+
+  // 1. Destructure pageRange from the incoming webhook body
+  const { documentId, userId, fileUrl, isPremium, pageRange } = body;
 
   if (!documentId || !userId || !fileUrl) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
   }
-
   try {
-    // 1. Parse PDF/PPTX to Markdown via LlamaCloud
-    const markdownContent = await parseDocumentToMarkdown(fileUrl, isPremium);
+    // 2. Pass pageRange down into the LlamaParse utility
+    const markdownContent = await parseDocumentToMarkdown(
+      fileUrl,
+      isPremium,
+      pageRange
+    );
 
-    // 2. Protect tables/diagrams with Dual-Chunking
+    // Protect tables/diagrams with Dual-Chunking
     const documentChunks = await splitTextDualChunking(markdownContent);
 
-    // 3. Generate vectors and insert into pgvector
+    // Generate vectors and insert into pgvector
     await embedAndStoreChunks(documentChunks, documentId, userId);
 
-    // 4. Update the document status to ready
+    // Update the document status to ready
     await supabaseAdmin
       .from("documents")
       .update({ status: "ready" })
