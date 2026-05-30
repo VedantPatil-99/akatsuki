@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { ChalkboardTeacherIcon } from "@phosphor-icons/react/dist/ssr";
 
@@ -10,7 +11,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export default function Home() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default async function Home(props: { searchParams: SearchParams }) {
+  const searchParams = await props.searchParams;
+
+  // 1. Catch the OAuth linking error
+  if (searchParams.error_code === "identity_already_exists") {
+    redirect("/board?conflict=existing_account");
+  }
+
+  // 2. Catch successful OAuth logins that fell back to the root URL
+  if (searchParams.code) {
+    redirect(`/api/auth/callback?code=${searchParams.code}`);
+  }
+
   return (
     <>
       <div className="flex min-h-screen w-full items-center justify-center text-cyan-600">
