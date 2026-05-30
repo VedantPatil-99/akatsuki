@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { WebRTCFilePayload } from "@/lib/types/webrtc";
+import { cn } from "@/lib/utils";
 
 export function QuickShareButton() {
   const [peerId, setPeerId] = useState<string>("");
@@ -81,7 +82,7 @@ export function QuickShareButton() {
           right: 1.5rem !important;
           width: 28px !important;
           height: 28px !important;
-          color: white !important;
+          color: hsl(var(--foreground)) !important;
           background: transparent !important;
           border: 1px solid transparent !important;
           border-radius: 9999px !important;
@@ -101,7 +102,11 @@ export function QuickShareButton() {
         .akatsuki-share-dialog button:has(svg.lucide-x):hover {
           opacity: 1;
           border-color: rgba(59, 130, 246, 0.4) !important;
-          background: rgba(59, 130, 246, 0.05) !important;
+          background: color-mix(
+            in srgb,
+            hsl(var(--background)) 85%,
+            rgba(59, 130, 246, 0.2)
+          ) !important;
           box-shadow:
             inset 0 0 12px rgba(59, 130, 246, 0.6),
             0 0 15px rgba(59, 130, 246, 0.1) !important;
@@ -179,20 +184,23 @@ export function QuickShareButton() {
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className={`pointer-events-auto relative z-10 h-9 w-9 rounded-full border p-0 shadow-sm transition-all duration-300 ${
-                isConnected
-                  ? "border-blue-500 bg-blue-600/20 shadow-blue-500/20"
-                  : "border-zinc-200/20 bg-white/10 backdrop-blur-sm"
-              }`}
+              size="icon"
+              className={cn(
+                "pointer-events-auto relative z-10 cursor-pointer rounded-full border p-0 shadow-sm transition-all duration-300",
+                "border-secondary-foreground/50 bg-secondary text-neutral-800 hover:bg-neutral-200",
+                "dark:bg-neutral-900 dark:text-neutral-50 dark:hover:bg-neutral-800",
+                isConnected &&
+                  "border-blue-500/60 bg-blue-600/20 hover:bg-blue-600/25"
+              )}
             >
               <QrCodeIcon
-                className={`h-4.5 w-4.5 ${isConnected ? "text-blue-400" : "text-neutral-800 dark:text-neutral-50"}`}
+                className={cn("size-4.5", isConnected && "text-blue-400")}
               />
             </Button>
           </DialogTrigger>
         </div>
 
-        <DialogContent className="akatsuki-share-dialog overflow-hidden rounded-[2.5rem] border-blue-500/30 bg-black text-white shadow-[0_0_50px_rgba(59,130,246,0.15)] sm:max-w-90">
+        <DialogContent className="akatsuki-share-dialog bg-background text-foreground overflow-hidden rounded-[2.5rem] border border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.15)] sm:max-w-90">
           <DialogHeader className="pt-4">
             <DialogTitle className="text-center text-[15px] font-black tracking-[0.3em] text-blue-500/60 uppercase">
               Quick Share
@@ -200,11 +208,11 @@ export function QuickShareButton() {
           </DialogHeader>
 
           <div className="relative flex flex-col items-center space-y-6 p-4">
-            <div className="relative rounded-[2rem] bg-linear-to-b from-blue-500 via-transparent to-blue-600 p-1 shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+            <div className="relative rounded-[2rem] bg-linear-to-b from-blue-500/90 via-transparent to-blue-600/90 p-1 shadow-[0_0_30px_rgba(59,130,246,0.3)]">
               <motion.div
                 animate={{ filter: showPopup ? "blur(15px)" : "blur(0px)" }}
                 transition={{ duration: 0.8 }}
-                className="rounded-[1.8rem] bg-black p-4"
+                className="bg-card rounded-[1.8rem] p-4"
               >
                 {shareUrl && (
                   <QRCodeSVG
@@ -230,7 +238,7 @@ export function QuickShareButton() {
                       <div className="flex justify-center">
                         <WifiOff className="h-8 w-8 animate-pulse text-blue-400" />
                       </div>
-                      <p className="text-sm font-bold tracking-tight text-white">
+                      <p className="text-foreground text-sm font-bold tracking-tight">
                         Please Connect to the same network
                       </p>
                       <Button
@@ -247,7 +255,7 @@ export function QuickShareButton() {
             </div>
 
             <div className="pb-2 text-center">
-              <p className="mb-1 text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
+              <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest uppercase">
                 Peer Identity
               </p>
               <code className="rounded-full border border-blue-500/20 bg-blue-500/5 px-3 py-1 font-mono text-xs text-blue-400/80">
@@ -264,7 +272,7 @@ export function QuickShareButton() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 20, opacity: 0 }}
-            className="fixed right-6 bottom-6 z-100 flex items-center gap-3 rounded-2xl border border-blue-500/40 bg-black/90 p-3 shadow-2xl backdrop-blur-xl"
+            className="bg-background/95 text-foreground fixed right-6 bottom-6 z-100 flex items-center gap-3 rounded-2xl border border-blue-500/40 p-3 shadow-2xl backdrop-blur-xl"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
               <DownloadCloud className="h-4 w-4 text-white" />
@@ -273,7 +281,7 @@ export function QuickShareButton() {
               <p className="text-[10px] font-black text-blue-400 uppercase">
                 File Synced
               </p>
-              <p className="w-24 truncate text-[11px] font-medium text-white">
+              <p className="text-foreground w-24 truncate text-[11px] font-medium">
                 {receivedFile}
               </p>
             </div>
