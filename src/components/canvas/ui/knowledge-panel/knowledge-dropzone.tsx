@@ -35,7 +35,7 @@ export const KnowledgeDropzone = ({
       onKeyDown={handleKeyDown}
       tabIndex={0}
       aria-label="Drag and drop file here or click to browse"
-      className="group relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-800 bg-neutral-900/30 p-8 transition-colors hover:border-neutral-700 hover:bg-neutral-900/60 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+      className="group bg-muted/30 border-border hover:bg-muted/60 focus-visible:ring-ring relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       <input
         id="file-upload"
@@ -46,13 +46,13 @@ export const KnowledgeDropzone = ({
       />
       <UploadSimpleIcon
         size={32}
-        className="mb-3 text-neutral-500 transition-colors group-hover:text-neutral-300"
+        className="text-muted-foreground group-hover:text-foreground mb-3 transition-colors"
       />
-      <span className="text-center text-sm font-medium text-neutral-300">
+      <span className="text-foreground text-center text-sm font-medium">
         {file ? file.name : "Click or drag PDF, DOCX, PPTX"}
       </span>
       {!file && (
-        <span className="mt-1 text-xs text-neutral-500">
+        <span className="text-muted-foreground mt-1 text-xs">
           Max file size 50MB
         </span>
       )}

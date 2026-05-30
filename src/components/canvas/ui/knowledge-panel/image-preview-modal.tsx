@@ -109,7 +109,7 @@ export const ImagePreviewModal = ({
             </DialogTitle>
             <DialogDescription asChild>
               <div className="p-6">
-                <div className="flex items-center justify-center rounded-md border border-neutral-800 bg-neutral-900/50 p-2">
+                <div className="bg-muted/50 border-border flex items-center justify-center rounded-md border p-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={currentImage.content}
@@ -118,7 +118,7 @@ export const ImagePreviewModal = ({
                   />
                 </div>
 
-                <div className="mt-4 space-y-1 text-sm text-neutral-400">
+                <div className="text-muted-foreground mt-4 space-y-1 text-sm">
                   <p>
                     <strong className="text-foreground font-semibold">
                       Source:

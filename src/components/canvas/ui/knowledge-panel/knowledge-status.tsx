@@ -13,7 +13,7 @@ export const KnowledgeStatus = ({ status }: KnowledgeStatusProps) => {
 
   if (status === "processing") {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900/20 p-6">
+      <div className="bg-muted/20 border-border flex flex-1 flex-col items-center justify-center rounded-xl border p-6">
         <AITextLoading
           texts={[
             "Reading document...",
@@ -24,7 +24,7 @@ export const KnowledgeStatus = ({ status }: KnowledgeStatusProps) => {
           ]}
           interval={2500}
         />
-        <p className="mt-4 text-center text-xs text-neutral-500">
+        <p className="text-muted-foreground mt-4 text-center text-xs">
           This happens securely in the background. You can close this panel and
           start drawing.
         </p>
