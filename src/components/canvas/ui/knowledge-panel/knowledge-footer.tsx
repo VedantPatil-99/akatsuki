@@ -16,13 +16,9 @@ export const KnowledgeFooter = ({
   onUpload,
 }: KnowledgeFooterProps) => {
   return (
-    <div className="mt-6 flex gap-3 border-t border-neutral-800 pt-4">
+    <div className="border-border mt-6 flex gap-3 border-t pt-4">
       {(status === "ready" || status === "failed") && (
-        <Button
-          variant="outline"
-          onClick={onReset}
-          className="flex-1 border-neutral-800 bg-transparent text-neutral-300 hover:bg-neutral-900 hover:text-white"
-        >
+        <Button variant="outline" onClick={onReset} className="flex-1">
           Upload Another
         </Button>
       )}
@@ -33,7 +29,7 @@ export const KnowledgeFooter = ({
           disabled={
             !hasFile || status === "uploading" || status === "processing"
           }
-          className="flex-1 bg-white text-black hover:bg-neutral-200 disabled:opacity-50"
+          className="flex-1"
         >
           {status === "uploading" ? "Uploading..." : "Start Processing"}
         </Button>

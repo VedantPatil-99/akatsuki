@@ -30,7 +30,7 @@ export function CanvasAuthButton({
         <Button
           asChild
           className={cn(
-            "border-secondary-foreground/50 gap-1.5 rounded-full shadow-sm transition-all sm:gap-2",
+            "border-secondary-foreground/50 pointer-events-auto cursor-pointer gap-1.5 rounded-full border shadow-sm transition-colors sm:gap-2",
             "dark:bg-neutral-900 dark:text-neutral-50 dark:hover:bg-neutral-800",
             "bg-secondary text-neutral-800 hover:bg-neutral-200"
           )}
@@ -44,13 +44,15 @@ export function CanvasAuthButton({
         </Button>
       ) : (
         <>
-          <button
+          <Button
             onClick={() => setShowMenu(!showMenu)}
             aria-expanded={showMenu}
+            aria-label="Open account menu"
+            variant="outline"
             className={cn(
-              "flex cursor-pointer items-center gap-2 rounded-full border shadow-sm backdrop-blur-md transition-all",
-              "border-secondary-foreground/50 bg-secondary/90 hover:bg-secondary",
-              "dark:bg-neutral-900/90 dark:hover:bg-neutral-800",
+              "pointer-events-auto flex cursor-pointer items-center gap-2 rounded-full border shadow-sm transition-colors",
+              "border-secondary-foreground/50 bg-secondary text-neutral-800 hover:bg-neutral-200",
+              "dark:bg-neutral-900 dark:text-neutral-50 dark:hover:bg-neutral-800",
               "p-1 sm:py-1.5 sm:pr-4 sm:pl-1.5"
             )}
           >
@@ -70,7 +72,7 @@ export function CanvasAuthButton({
             <span className="text-foreground hidden max-w-24 truncate text-sm font-medium sm:inline-block lg:max-w-32">
               {email?.split("@")[0] || "Account"}
             </span>
-          </button>
+          </Button>
 
           {/* Dropdown Menu */}
           {showMenu && (

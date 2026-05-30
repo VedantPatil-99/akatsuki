@@ -21,7 +21,7 @@ export const KnowledgeOptions = ({
     <div className="flex flex-col gap-6">
       {/* Page Range Input */}
       <div className="grid gap-3">
-        <Label htmlFor="page-range" className="text-neutral-300">
+        <Label htmlFor="page-range" className="text-foreground">
           Target Pages (Optional)
         </Label>
         <Input
@@ -29,15 +29,15 @@ export const KnowledgeOptions = ({
           placeholder="e.g. 1-5, 8, 11-13"
           value={pageRange}
           onChange={(e) => onPageRangeChange(e.target.value)}
-          className="border-neutral-800 bg-neutral-900 text-white placeholder:text-neutral-600 focus-visible:ring-1 focus-visible:ring-neutral-700"
+          className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
         />
-        <p className="text-xs text-neutral-500">
+        <p className="text-muted-foreground text-xs">
           Leave blank to scan the entire document.
         </p>
       </div>
 
       {/* Premium Toggle */}
-      <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
+      <div className="bg-muted/30 border-border flex items-center justify-between rounded-lg border p-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <SparkleIcon
@@ -45,11 +45,11 @@ export const KnowledgeOptions = ({
               weight={isPremium ? "fill" : "regular"}
               className={isPremium ? "text-amber-400" : "text-neutral-500"}
             />
-            <span className="text-sm font-medium text-neutral-200">
+            <span className="text-foreground text-sm font-medium">
               Deep Scan
             </span>
           </div>
-          <span className="text-xs text-neutral-500">
+          <span className="text-muted-foreground text-xs">
             Prioritize complex tables and diagrams
           </span>
         </div>
@@ -58,8 +58,8 @@ export const KnowledgeOptions = ({
           onKeyDown={(e) => e.key === "Enter" && onPremiumToggle()}
           tabIndex={0}
           className={cn(
-            "relative flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none",
-            isPremium ? "bg-amber-500" : "bg-neutral-800"
+            "focus-visible:ring-ring relative flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none",
+            isPremium ? "bg-amber-500" : "bg-muted"
           )}
           aria-label="Toggle Deep Scan Mode"
         >
