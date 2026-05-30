@@ -50,7 +50,7 @@ export const KnowledgePanel = ({ userId }: KnowledgePanelProps) => {
       <SheetTrigger asChild>
         <Button
           variant="default"
-          className="pointer-events-auto absolute top-1/2 right-0 z-1000 flex h-16 w-8 -translate-y-1/2 items-center justify-center rounded-l-xl border border-r-0"
+          className="corner-squircle order pointer-events-auto absolute top-1/2 right-0 z-1000 flex h-16 w-8 -translate-y-1/2 items-center justify-center rounded-l-3xl border-r-0"
           aria-label="Toggle Knowledge Base Panel"
         >
           <CaretDoubleLeftIcon size={24} weight="bold" />
@@ -59,14 +59,14 @@ export const KnowledgePanel = ({ userId }: KnowledgePanelProps) => {
 
       <SheetContent
         side="right"
-        className="pointer-events-auto flex w-full flex-col border-l border-neutral-800 bg-neutral-950 p-6 sm:max-w-md"
+        className="bg-background pointer-events-auto flex w-full flex-col border-l p-6 sm:max-w-md"
       >
         <SheetHeader className="mb-6">
-          <SheetTitle className="flex items-center gap-2 text-xl font-semibold text-white">
-            <FolderOpenIcon className="text-neutral-400" size={24} />
+          <SheetTitle className="text-foreground flex items-center gap-2 text-xl font-semibold">
+            <FolderOpenIcon className="text-muted-foreground" size={24} />
             Knowledge Base
           </SheetTitle>
-          <SheetDescription className="text-neutral-400">
+          <SheetDescription className="text-muted-foreground">
             Upload notes, textbooks, or slides to give the AI context for your
             whiteboard session.
           </SheetDescription>

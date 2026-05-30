@@ -25,18 +25,20 @@ export const KnowledgeDocuments = ({ userId }: KnowledgeDocumentsProps) => {
 
   return (
     <div className="mt-6 flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-neutral-400">Your Library</h3>
+      <h3 className="text-muted-foreground text-sm font-medium">
+        Your Library
+      </h3>
 
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-docs">
           <AccordionPrimitive.Header className="flex">
             <AccordionPrimitive.Trigger className="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 cursor-pointer items-center justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg]:rotate-180 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0">
               <span className="flex items-center gap-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900/50">
+                <span className="bg-muted/50 border-border flex size-10 shrink-0 items-center justify-center rounded-full border">
                   <FileTextIcon className="size-4 text-purple-400" />
                 </span>
                 <span className="flex flex-col space-y-0.5">
-                  <span className="text-white">Uploaded Documents</span>
+                  <span className="text-foreground">Uploaded Documents</span>
                   <span className="text-muted-foreground font-normal">
                     {documents.length} recent files
                   </span>
@@ -51,13 +53,13 @@ export const KnowledgeDocuments = ({ userId }: KnowledgeDocumentsProps) => {
               {documents.map((doc) => (
                 <li
                   key={doc.id}
-                  className="flex flex-col gap-2 rounded-lg border border-neutral-800 bg-neutral-900/30 p-3"
+                  className="bg-muted/30 border-border flex flex-col gap-2 rounded-lg border p-3"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="line-clamp-1 text-sm font-medium text-neutral-200">
+                    <span className="text-foreground line-clamp-1 text-sm font-medium">
                       {doc.filename}
                     </span>
-                    <span className="shrink-0 text-xs text-neutral-500">
+                    <span className="text-muted-foreground shrink-0 text-xs">
                       {new Date(doc.created_at).toLocaleDateString()}
                     </span>
                   </div>

@@ -40,7 +40,9 @@ export const KnowledgeAssets = ({
 
   return (
     <div className="mt-6 flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-neutral-400">Extracted Assets</h3>
+      <h3 className="text-muted-foreground text-sm font-medium">
+        Extracted Assets
+      </h3>
 
       <Accordion type="single" collapsible className="w-full">
         {/* Images Accordion Item */}
@@ -53,13 +55,13 @@ export const KnowledgeAssets = ({
               >
                 <span className="flex items-center gap-4">
                   <span
-                    className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900/50"
+                    className="bg-muted/50 border-border flex size-10 shrink-0 items-center justify-center rounded-full border"
                     aria-hidden="true"
                   >
                     <ImageIcon className="size-4 text-blue-400" />
                   </span>
                   <span className="flex flex-col space-y-0.5">
-                    <span className="text-white">Images</span>
+                    <span className="text-foreground">Images</span>
                     <span className="text-muted-foreground font-normal">
                       {images.length} extracted items
                     </span>
@@ -73,7 +75,7 @@ export const KnowledgeAssets = ({
                 {images.map((img, index) => (
                   <button
                     key={img.id}
-                    className="relative aspect-square w-full overflow-hidden rounded-lg border-2 border-neutral-800 bg-neutral-900 transition-colors hover:border-neutral-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="bg-muted border-border hover:border-border/80 relative aspect-square w-full overflow-hidden rounded-lg border-2 transition-colors focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     onClick={() => handleImageClick(index)}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -99,13 +101,13 @@ export const KnowledgeAssets = ({
               >
                 <span className="flex items-center gap-4">
                   <span
-                    className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900/50"
+                    className="bg-muted/50 border-border flex size-10 shrink-0 items-center justify-center rounded-full border"
                     aria-hidden="true"
                   >
                     <LinkIcon className="size-4 text-emerald-400" />
                   </span>
                   <span className="flex flex-col space-y-0.5">
-                    <span className="text-white">External Links</span>
+                    <span className="text-foreground">External Links</span>
                     <span className="text-muted-foreground font-normal">
                       {urls.length} URLs found
                     </span>
@@ -122,7 +124,7 @@ export const KnowledgeAssets = ({
                       href={url.content}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="line-clamp-2 text-sm text-indigo-500 underline underline-offset-2 transition-colors hover:text-white hover:no-underline"
+                      className="line-clamp-2 text-sm text-indigo-500 underline underline-offset-2 transition-colors hover:text-indigo-400 hover:no-underline"
                     >
                       {url.metadata.label || url.content}
                     </a>
