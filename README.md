@@ -1,17 +1,18 @@
-# Akatsuki Canvas
+<div align="center">
+  
+# ☁️ Akatsuki Canvas 🖋️
+**The AI-Powered Interactive Whiteboard for Educators**
 
-### _Your curriculum on the board. Your handwriting, completed by AI._
+[![Next.js](https://img.shields.io/badge/Next.js-16.1-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-pgvector-47C076?logo=supabase)](https://supabase.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[Live](https://akatsuki-gilt.vercel.app/board)
-[Next.js](https://nextjs.org/)
-[React](https://react.dev/)
-[TypeScript](https://www.typescriptlang.org/)
-[Supabase](https://supabase.com/)
-[License: MIT](https://opensource.org/licenses/MIT)
+[Live](https://akatsuki-gilt.vercel.app/board) · [Report Bug](https://github.com/VedantPatil-99/akatsuki/issues) · [Request Feature](https://github.com/VedantPatil-99/akatsuki/issues)
 
-[Report Bug](https://github.com/VedantPatil-99/akatsuki/issues) · [Request Feature](https://github.com/VedantPatil-99/akatsuki/issues)
+*An AI-powered interactive digital whiteboard designed for educators, featuring real-time handwriting recognition, context-aware autocompletion, and a robust Retrieval-Augmented Generation (RAG) pipeline.*
 
----
+</div>
 
 > **Akatsuki Canvas** is an AI-powered interactive whiteboard for educators. Upload course materials, write on the canvas, and get **ghost text** predictions grounded in your documents — handwriting is read via vision OCR, context is retrieved with hybrid search, and completions render inline until you accept with `Tab`.
 
@@ -76,10 +77,10 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Browser (Next.js + Tldraw)                   │
+│                     Browser (Next.js + Tldraw)                  │
 │  Pen strokes → debounce → OCR (Gemini) → hybrid search (RPC)    │
-│                              ↓                                   │
-│                    Groq completion → ghost text                  │
+│                              ↓                                  │
+│                    Groq completion → ghost text                 │
 └──────────────────────────────┬──────────────────────────────────┘
                                │
         ┌──────────────────────┼──────────────────────┐
@@ -162,16 +163,18 @@ src/
 ## Screenshots
 
 ### AI autocompletion
-
-| Completion modes | Word-by-word | Full sentence |
-| ---------------- | ------------ | ------------- |
-|                  |              |               |
+<div align="center">
+  <img src="public/screenshots/AI_modes.jpeg" alt="AI completion modes" width="330" />
+  <img src="public/screenshots/word_autocomplete.jpeg" alt="Word-by-word autocomplete" width="340" />
+  <img src="public/screenshots/para_autocomplete.jpeg" alt="Full sentence autocomplete" width="300" />
+</div>
 
 ### Knowledge panel & study notes
 
-| Document uploads & assets | Generated scribble notes |
-| ------------------------- | ------------------------ |
-|                           |                          |
+<div align="center">
+  <img src="public/screenshots/knowledge_panel.jpeg" alt="Knowledge panel" width="400" />
+  <img src="public/screenshots/gen_notes.jpeg" alt="Generated scribble notes" width="400" />
+</div>
 
 ---
 
