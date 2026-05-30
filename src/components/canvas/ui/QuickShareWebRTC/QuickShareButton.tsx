@@ -2,9 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { QrCodeIcon } from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "framer-motion";
-import { BadgeCheckIcon, Check, DownloadCloud, WifiOff } from "lucide-react";
+import {
+  CheckCircleIcon,
+  CheckIcon,
+  DownloadSimpleIcon,
+  QrCodeIcon,
+  WifiSlashIcon,
+} from "@phosphor-icons/react";
+import { AnimatePresence, motion } from "motion/react";
 import { DataConnection, Peer } from "peerjs";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -170,14 +175,14 @@ export function QuickShareButton() {
           {isConnected && (
             <div className="absolute -top-1.5 -right-1.5 z-20 flex h-4 w-4 items-center justify-center">
               <div className="badge-cloud-wrapper">
-                {/* This rotates the "cloud" outer part of the BadgeCheckIcon */}
-                <BadgeCheckIcon
+                {/* This rotates the "cloud" outer part of the CheckCircle */}
+                <CheckCircleIcon
                   className="h-4 w-4 fill-green-500 text-green-500"
-                  strokeWidth={0}
+                  weight="fill"
                 />
               </div>
               {/* This is the stable small tick mark in the center */}
-              <Check className="relative z-30 h-2 w-2 stroke-[4px] text-white" />
+              <CheckIcon className="relative z-30 h-2 w-2 stroke-[4px] text-white" />
             </div>
           )}
 
@@ -236,7 +241,7 @@ export function QuickShareButton() {
                   >
                     <div className="space-y-3 text-center">
                       <div className="flex justify-center">
-                        <WifiOff className="h-8 w-8 animate-pulse text-blue-400" />
+                        <WifiSlashIcon className="h-8 w-8 animate-pulse text-blue-400" />
                       </div>
                       <p className="text-foreground text-sm font-bold tracking-tight">
                         Please Connect to the same network
@@ -275,7 +280,7 @@ export function QuickShareButton() {
             className="bg-background/95 text-foreground fixed right-6 bottom-6 z-100 flex items-center gap-3 rounded-2xl border border-blue-500/40 p-3 shadow-2xl backdrop-blur-xl"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <DownloadCloud className="h-4 w-4 text-white" />
+              <DownloadSimpleIcon className="h-4 w-4 text-white" />
             </div>
             <div className="pr-2">
               <p className="text-[10px] font-black text-blue-400 uppercase">
